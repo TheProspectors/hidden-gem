@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
-public class startScreen extends AppCompatActivity
+public class StartScreen extends AppCompatActivity
 {
 
     private TextView startscreentext;

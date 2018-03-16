@@ -5,7 +5,7 @@
     android:id="@+id/startScreen"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="edu.wit.mobileapp.hiddengem.startScreen">
+    tools:context="edu.wit.mobileapp.hiddengem.StartScreen">
     
     <LinearLayout
         android:gravity="center"
