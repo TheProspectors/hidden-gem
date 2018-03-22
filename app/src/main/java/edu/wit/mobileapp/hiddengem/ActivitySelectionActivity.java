@@ -19,7 +19,12 @@ public class ActivitySelectionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_selection);
 
         String[] labels = getResources().getStringArray(R.array.labels);
-        int[] imageIds = getResources().getIntArray(R.array.icons);
+        int[] imageIds = {R.drawable.ic_local_dining_black_24dp,
+            R.drawable.ic_fitness_center_black_24dp,
+            R.drawable.ic_local_movies_black_24dp,
+            R.drawable.ic_local_play_black_24dp};
+
+        final Bundle bundle = this.getIntent().getExtras();
 
         List<ActivityListItem> list = new ArrayList<>();
 
@@ -42,10 +47,9 @@ public class ActivitySelectionActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent activitySelectedIntent = new Intent();
-                Bundle activitySelectedBundle = new Bundle();
 
-                activitySelectedBundle.putInt("selectedActivity", position);
-                activitySelectedIntent.putExtras(activitySelectedBundle);
+                bundle.putInt("selectedActivity", position);
+                activitySelectedIntent.putExtras(bundle);
                 //TODO: connect to map activity
             }
         });

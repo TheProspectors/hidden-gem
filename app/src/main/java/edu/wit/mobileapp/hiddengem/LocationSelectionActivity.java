@@ -38,7 +38,8 @@ public class LocationSelectionActivity extends AppCompatActivity
                 zipcodeText = findViewById(R.id.zipcodeText);
 
                 Intent locationData = new Intent();
-                locationData.setClass(LocationSelectionActivity.this, null); //Replace null with proper class.
+                locationData.setClass(LocationSelectionActivity.this,
+                        ActivitySelectionActivity.class);
 
                 Bundle bundle = new Bundle();
                 bundle.putString(cityText.toString(), zipcodeText.toString());
