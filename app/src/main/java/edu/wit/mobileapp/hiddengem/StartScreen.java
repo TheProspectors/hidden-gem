@@ -1,51 +1,37 @@
 package edu.wit.mobileapp.hiddengem;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-public class StartScreen extends AppCompatActivity
-{
-
-    private TextView startscreentext;
-    private ImageView hiddengemslogo;
-
+public class StartScreen extends AppCompatActivity {
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_screen);
 
-        startscreentext = (TextView) findViewById(R.id.startscreentext);
-        hiddengemslogo = (ImageView) findViewById(R.id.hiddengemslogo);
+        final TextView startScreenText = (TextView) findViewById(R.id.startscreentext);
+        final ImageView logo = (ImageView) findViewById(R.id.hiddengemslogo);
+        final Animation transAnimation = AnimationUtils.loadAnimation(this, R.anim.transition);
 
-        Animation transAnimation = AnimationUtils.loadAnimation(this, R.anim.transition);
+        startScreenText.startAnimation(transAnimation);
+        logo.startAnimation(transAnimation);
 
-        startscreentext.startAnimation(transAnimation);
-        hiddengemslogo.startAnimation(transAnimation);
-
-        Thread timer = new Thread()
-        {
+        final Thread timer = new Thread() {
             @Override
-            public void run()
-            {
-                try
-                {
+            public void run() {
+                try {
                     sleep(7000);
 
-                    Intent intent = new Intent(getApplicationContext(), LocationSelectionActivity.class);
+                    final Intent intent = new Intent(getApplicationContext(), LocationSelectionActivity.class);
                     startActivity(intent);
 
                     finish();
-                }
-                catch (InterruptedException e)
-                {
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
