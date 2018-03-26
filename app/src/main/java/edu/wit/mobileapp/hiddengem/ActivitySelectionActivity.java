@@ -2,8 +2,8 @@ package edu.wit.mobileapp.hiddengem;
 
 import android.content.Intent;
 import android.graphics.drawable.VectorDrawable;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -12,37 +12,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ActivitySelectionActivity extends AppCompatActivity {
-
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_selection);
 
-        String[] labels = getResources().getStringArray(R.array.labels);
-        int[] imageIds = getResources().getIntArray(R.array.icons);
+        final String[] labels = getResources().getStringArray(R.array.labels);
+        final int[] imageIds = getResources().getIntArray(R.array.icons);
+        final List<ActivityListItem> activityListItems = new ArrayList<>();
 
-        List<ActivityListItem> list = new ArrayList<>();
-
-        for (int i = 0; i < labels.length; i++){
-            ActivityListItem item = new ActivityListItem();
-            item.label = labels[i];
-            if (i < imageIds.length){
-                item.image = (VectorDrawable) getResources().getDrawable(imageIds[i], null);
+        for (int i = 0; i < labels.length; i++) {
+            final String label = labels[i];
+            VectorDrawable vectorDrawable = null;
+            if (i < imageIds.length) {
+                vectorDrawable = (VectorDrawable) getResources().getDrawable(imageIds[i], null);
             }
-            list.add(item);
+
+            final ActivityListItem activityListItem = new ActivityListItem(vectorDrawable, label);
+            activityListItems.add(activityListItem);
         }
 
-        ActivityListItemAdapter adapter;
-        adapter = new ActivityListItemAdapter(this, 0, list);
-
-        ListView listView = (ListView)findViewById(R.id.ActivityListView);
+        final ActivityListItemAdapter adapter = new ActivityListItemAdapter(this, 0, activityListItems);
+        final ListView listView = (ListView) findViewById(R.id.ActivityListView);
         listView.setAdapter(adapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent activitySelectedIntent = new Intent();
-                Bundle activitySelectedBundle = new Bundle();
+                final Intent activitySelectedIntent = new Intent();
+                final Bundle activitySelectedBundle = new Bundle();
 
                 activitySelectedBundle.putInt("selectedActivity", position);
                 activitySelectedIntent.putExtras(activitySelectedBundle);
