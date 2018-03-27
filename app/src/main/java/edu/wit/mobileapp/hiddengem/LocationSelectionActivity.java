@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class LocationSelectionActivity extends AppCompatActivity
+public class LocationSelectionActivity extends AppCompatActivity implements View.OnClickListener
 {
 
     EditText cityText;
