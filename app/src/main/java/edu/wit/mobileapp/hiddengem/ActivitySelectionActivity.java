@@ -50,7 +50,8 @@ public class ActivitySelectionActivity extends AppCompatActivity {
 
                 bundle.putInt("selectedActivity", position);
                 activitySelectedIntent.putExtras(bundle);
-                //TODO: connect to map activity
+                Intent intent = new Intent(getApplicationContext(), MapFiltersActivity.class);
+                startActivity(intent);
             }
         });
     }
