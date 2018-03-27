@@ -1,8 +1,6 @@
 <resources>
-    <string name="app_name">Hidden Gems</string>
+    <string name="app_name">Hidden Gem</string>
     <string name="location_pick_text">Pick a Location</string>
     <string name="use_location_button_text">Use current location</string>
-    <string name="city_text">City</string>
-    <string name="zip_code_text">Zip Code</string>
     <string name="go_button">Go!</string>
 </resources>

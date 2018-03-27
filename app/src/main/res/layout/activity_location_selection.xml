@@ -42,39 +42,22 @@
         app:layout_constraintTop_toBottomOf="@+id/picklocationtext"
         app:layout_constraintVertical_bias="0.242" />
 
-    <EditText
-        android:id="@+id/cityText"
-        style="@style/Widget.AppCompat.EditText"
-        android:layout_width="169dp"
+    <android.support.v7.widget.CardView
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/texteditborder"
-        android:ems="10"
-        android:hint="@string/city_text"
-        android:inputType="textPostalAddress"
-        app:layout_constraintBottom_toTopOf="@+id/goButton"
-        app:layout_constraintEnd_toStartOf="@+id/zipcodeText"
-        app:layout_constraintHorizontal_bias="0.775"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/currentlocation" />
-
-    <EditText
-        android:id="@+id/zipcodeText"
-        android:layout_width="91dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="68dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/texteditborder"
-        android:ems="10"
-        android:hint="@string/zip_code_text"
-        android:inputType="number"
-        app:layout_constraintBottom_toTopOf="@+id/goButton"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/currentlocation" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/currentlocation"
+        app:layout_constraintVertical_bias="0.247">
+
+        <fragment
+            android:id="@+id/autocomplete_fragment"
+            android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </android.support.v7.widget.CardView>
 
     <Button
         android:id="@+id/goButton"
@@ -91,7 +74,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/currentlocation"
-        app:layout_constraintVertical_bias="0.396" />
+        app:layout_constraintVertical_bias="0.536"
+        tools:enabled="false" />
 
     <ImageView
         android:id="@+id/hiddengemssmall"
