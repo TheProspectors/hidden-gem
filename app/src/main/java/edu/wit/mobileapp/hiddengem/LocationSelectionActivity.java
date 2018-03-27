@@ -127,7 +127,10 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
 
         final Bundle bundle = new Bundle();
         if (place != null) {
-            bundle.putString("place", place.getAddress().toString());
+            bundle.putString("place_address", place.getAddress().toString());
+            bundle.putString("place_name", place.getName().toString());
+            bundle.putString("place_latitude", String.valueOf(place.getLatLng().latitude));
+            bundle.putString("place_longitude", String.valueOf(place.getLatLng().longitude));
         }
 
         locationData.putExtras(bundle);

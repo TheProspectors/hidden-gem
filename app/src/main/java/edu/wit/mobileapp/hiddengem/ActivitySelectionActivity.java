@@ -42,12 +42,16 @@ public class ActivitySelectionActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
                 final Intent activitySelectedIntent = new Intent();
                 final Bundle activitySelectedBundle = new Bundle();
 
-                activitySelectedBundle.putInt("selectedActivity", position);
+                activitySelectedIntent.setClass(ActivitySelectionActivity.this, MapActivity.class);
+                activitySelectedBundle.putInt("selected_activity", position);
                 activitySelectedIntent.putExtras(activitySelectedBundle);
-                //TODO: connect to map activity
+
+                startActivity(activitySelectedIntent);
+                finish();
             }
         });
     }
