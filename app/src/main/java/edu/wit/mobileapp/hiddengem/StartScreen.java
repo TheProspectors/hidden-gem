@@ -16,7 +16,7 @@ public class StartScreen extends AppCompatActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_start_screen);
+        setContentView(R.layout.start_screen_activity);
 
         final TextView startScreenText = (TextView) findViewById(R.id.startscreentext);
         final ImageView logo = (ImageView) findViewById(R.id.hiddengemslogo);

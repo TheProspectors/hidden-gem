@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
@@ -31,30 +32,34 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_location_selection);
+        setContentView(R.layout.location_selection_activity);
 
         final PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment) getFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-        final Button autocompleteClearButton = autocompleteFragment.getView().findViewById(R.id.place_autocomplete_clear_button);
-        final Button goButton = findViewById(R.id.goButton);
-        final Button useCurrentLocationButton = findViewById(R.id.currentlocation);
+        final ImageButton autocompleteClearButton = autocompleteFragment.getView().findViewById(R.id.place_autocomplete_clear_button);
+        final Button goButton = findViewById(R.id.go_button);
+        final Button useCurrentLocationButton = findViewById(R.id.current_location_button);
 
         // Register a listener to receive callbacks when a place has been selected
         // and register a listener to receive callbacks when a selected place is cleared
         autocompleteFragment.setOnPlaceSelectedListener(this);
         autocompleteClearButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        onPlaceSelected(null);
-                    }
-                });
+            @Override
+            public void onClick(final View view) {
+                onPlaceSelected(null);
+            }
+        });
 
         // Check for and request location permissions
         useCurrentLocationButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View view) {
+                Log.d("PLACE", "Current Location Button was pressed");
                 if (ActivityCompat.checkSelfPermission(LocationSelectionActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    Log.d("PLACE", "Requesting permissions");
                     final String[] requestingPermissions = {Manifest.permission.ACCESS_FINE_LOCATION};
                     ActivityCompat.requestPermissions(LocationSelectionActivity.this, requestingPermissions, ACCESS_LOCATION_REQUEST_CODE);
+                } else {
+                    selectCurrentPlace();
                 }
             }
         });
@@ -72,13 +77,15 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
     @Override
     // If permissions for location are granted, set the current place to the user's current location
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        Log.d("PLACE PERMISSION", "Permission request result");
         switch (requestCode) {
             case ACCESS_LOCATION_REQUEST_CODE: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     selectCurrentPlace();
                 } else {
-                    findViewById(R.id.currentlocation).setEnabled(false);
+                    Log.w("PLACE PERMISSION", "User has not granted permissions");
+                    findViewById(R.id.current_location_button).setEnabled(false);
                 }
             }
         }
@@ -88,6 +95,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
     // Finds the user's most likely location
     // Only call if user has given permission for fine location
     private void selectCurrentPlace() {
+        Log.d("PLACE", "Selecting place based on user location");
         final PlaceDetectionClient placeDetectionClient = Places.getPlaceDetectionClient(this);
         final Task<PlaceLikelihoodBufferResponse> currentPlace = placeDetectionClient.getCurrentPlace(null);
         currentPlace.addOnCompleteListener(new OnCompleteListener<PlaceLikelihoodBufferResponse>() {
@@ -102,6 +110,11 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
                     if (bestLikelihood == null || placeLikelihood.getLikelihood() > bestLikelihood.getLikelihood()) {
                         bestLikelihood = placeLikelihood;
                     }
+                }
+                if (bestLikelihood != null) {
+                    Log.d("PLACE", bestLikelihood.getPlace().getAddress().toString());
+                } else {
+                    Log.d("PLACE", "No likely place could be determined");
                 }
                 onPlaceSelected(bestLikelihood.getPlace());
             }
@@ -124,8 +137,13 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
 
     @Override
     public void onPlaceSelected(final Place place) {
+        if (place != null) {
+            Log.i("PLACE", place.getAddress().toString());
+        } else {
+            Log.i("PLACE", "Selected place was set to null");
+        }
         selectedPlace = place;
-        findViewById(R.id.goButton).setEnabled(selectedPlace != null);
+        findViewById(R.id.go_button).setEnabled(selectedPlace != null);
     }
 
     @Override

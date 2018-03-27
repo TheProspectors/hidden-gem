@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,7 +7,7 @@
     tools:context="edu.wit.mobileapp.hiddengem.LocationSelectionActivity">
 
     <TextView
-        android:id="@+id/picklocationtext"
+        android:id="@+id/pick_location_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -17,15 +16,15 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="32dp"
         android:text="@string/location_pick_text"
-        android:textSize="50sp"
         android:textAppearance="@android:style/TextAppearance.Large"
+        android:textSize="50sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/currentlocation"
+        android:id="@+id/current_location_button"
         style="@android:style/Widget.Material.Button.Colored"
         android:layout_width="173dp"
         android:layout_height="wrap_content"
@@ -39,7 +38,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/picklocationtext"
+        app:layout_constraintTop_toBottomOf="@+id/pick_location_text_view"
         app:layout_constraintVertical_bias="0.242" />
 
     <android.support.v7.widget.CardView
@@ -48,7 +47,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/currentlocation"
+        app:layout_constraintTop_toBottomOf="@+id/current_location_button"
         app:layout_constraintVertical_bias="0.247">
 
         <fragment
@@ -60,7 +59,7 @@
     </android.support.v7.widget.CardView>
 
     <Button
-        android:id="@+id/goButton"
+        android:id="@+id/go_button"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -73,20 +72,20 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/currentlocation"
+        app:layout_constraintTop_toBottomOf="@+id/current_location_button"
         app:layout_constraintVertical_bias="0.536"
         tools:enabled="false" />
 
     <ImageView
-        android:id="@+id/hiddengemssmall"
+        android:id="@+id/hidden_gem_small_image_view"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:contentDescription="@string/app_name"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:src="@drawable/hiddengems"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/hidden_gem"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.029"
