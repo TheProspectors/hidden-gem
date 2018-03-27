@@ -2,6 +2,8 @@ package edu.wit.mobileapp.hiddengem;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -9,8 +11,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class StartScreen extends AppCompatActivity {
+    private final Handler handler = new Handler(Looper.myLooper());
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_screen);
 
@@ -21,22 +25,13 @@ public class StartScreen extends AppCompatActivity {
         startScreenText.startAnimation(transAnimation);
         logo.startAnimation(transAnimation);
 
-        final Thread timer = new Thread() {
+        handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                try {
-                    sleep(7000);
-
-                    final Intent intent = new Intent(getApplicationContext(), LocationSelectionActivity.class);
-                    startActivity(intent);
-
-                    finish();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                final Intent intent = new Intent(getApplicationContext(), LocationSelectionActivity.class);
+                startActivity(intent);
+                finish();
             }
-        };
-
-        timer.start();
+        }, 2000);
     }
 }
