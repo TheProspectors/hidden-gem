@@ -7,6 +7,11 @@ import android.graphics.drawable.VectorDrawable;
  */
 
 public class ActivityListItem {
-    public VectorDrawable image;
-    public String label;
+    final VectorDrawable vectorDrawable;
+    final String label;
+
+    public ActivityListItem(final VectorDrawable image, final String label) {
+        this.vectorDrawable = image;
+        this.label = label;
+    }
 }

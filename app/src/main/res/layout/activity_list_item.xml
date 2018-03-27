@@ -6,7 +6,8 @@
     <ImageView
         android:id="@+id/image"
         android:layout_width="80dip"
-        android:layout_height="80dip" />
+        android:layout_height="80dip"
+        android:contentDescription="@string/activity_icon" />
 
     <TextView
         android:id="@+id/label"
