@@ -34,7 +34,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.location_selection_activity);
+        setContentView(R.layout.activity_location_selection);
 
         final PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment) getFragmentManager().findFragmentById(R.id.autocomplete_fragment);
         final ImageButton autocompleteClearButton = autocompleteFragment.getView().findViewById(R.id.place_autocomplete_clear_button);
