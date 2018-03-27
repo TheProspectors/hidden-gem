@@ -15,7 +15,7 @@ public class ActivitySelectionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_selection);
+        setContentView(R.layout.activity_activity_selection);
 
         final String[] labels = getResources().getStringArray(R.array.labels);
         final int[] imageIds = {R.drawable.ic_local_dining_black_24dp,
