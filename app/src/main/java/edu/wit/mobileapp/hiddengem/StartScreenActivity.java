@@ -10,7 +10,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class StartScreen extends AppCompatActivity {
+public class StartScreenActivity extends AppCompatActivity {
     private final Handler handler = new Handler(Looper.myLooper());
 
     @Override
