@@ -23,7 +23,6 @@ public class ActivitySelectionActivity extends AppCompatActivity {
                 R.drawable.ic_local_movies_black_24dp,
                 R.drawable.ic_local_play_black_24dp};
         final List<ActivityListItem> activityListItems = new ArrayList<>();
-        final Bundle bundle = this.getIntent().getExtras();
 
         for (int i = 0; i < labels.length; i++) {
             final String label = labels[i];
@@ -46,8 +45,8 @@ public class ActivitySelectionActivity extends AppCompatActivity {
                 final Intent activitySelectedIntent = new Intent();
                 final Bundle activitySelectedBundle = new Bundle();
 
-                bundle.putInt("selectedActivity", position);
-                activitySelectedIntent.putExtras(bundle);
+                activitySelectedBundle.putInt("selectedActivity", position);
+                activitySelectedIntent.putExtras(activitySelectedBundle);
                 //TODO: connect to map activity
             }
         });
