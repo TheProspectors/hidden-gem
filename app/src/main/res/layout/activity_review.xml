@@ -7,31 +7,37 @@
     tools:context="edu.wit.mobileapp.hiddengem.review">
 
 
-    <Button
+    <ImageButton
         android:id="@+id/Like"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="38dp"
         android:layout_marginBottom="8dp"
-        android:layout_marginStart="72dp"
+        android:layout_marginStart="96dp"
         android:layout_marginTop="8dp"
+        android:background="@drawable/thumbup"
+        android:contentDescription="@string/like_button"
         android:text="@string/like_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.499" />
 
-    <Button
+    <ImageButton
         android:id="@+id/Dislike"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="38dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:background="@drawable/thumbdown"
+        android:contentDescription="@string/dislike_button"
         android:text="@string/dislike_button"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.55"
         app:layout_constraintStart_toEndOf="@+id/Like"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.499" />
 
 </android.support.constraint.ConstraintLayout>
