@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="labels">
+        <item name="food">Food/Eating</item>
+        <item name="exercise">Exercise</item>
+        <item name="movies">Movies</item>
+        <item name="plays">Plays</item>
+        <item name="sports">Sporting Events</item>
+    </string-array>
+
+    <array name="icons">
+        <item type="id" name="ic_local_dining_black_24dp" />
+        <item type="id" name="ic_fitness_center_black_24dp" />
+        <item type="id" name="ic_local_movies_black_24dp" />
+        <item type="id" name="ic_local_play_black_24dp" />
+    </array>
+</resources>
