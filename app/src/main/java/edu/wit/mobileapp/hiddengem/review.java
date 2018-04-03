@@ -4,12 +4,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 
 public class review extends AppCompatActivity implements View.OnClickListener {
 
-    Button likeButton;
-    Button dislikeButton;
+    ImageButton likeButton;
+    ImageButton dislikeButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
