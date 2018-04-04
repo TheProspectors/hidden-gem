@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.drawable.VectorDrawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -24,6 +25,11 @@ public class ActivitySelectionActivity extends AppCompatActivity {
                 R.drawable.ic_local_play_black_24dp};
         final List<ActivityListItem> activityListItems = new ArrayList<>();
 
+        Log.v("myapp", "ActivitySelectionActivity is called");
+
+        final Bundle previousBundle = getIntent().getExtras();
+
+
         for (int i = 0; i < labels.length; i++) {
             final String label = labels[i];
             VectorDrawable vectorDrawable = null;
@@ -42,13 +48,12 @@ public class ActivitySelectionActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
                 final Intent activitySelectedIntent = new Intent();
                 final Bundle activitySelectedBundle = new Bundle();
-
                 activitySelectedIntent.setClass(ActivitySelectionActivity.this, MapActivity.class);
                 activitySelectedBundle.putInt("selected_activity", position);
                 activitySelectedIntent.putExtras(activitySelectedBundle);
+                activitySelectedIntent.putExtras(previousBundle);
 
                 startActivity(activitySelectedIntent);
                 finish();

@@ -29,5 +29,4 @@
         <activity android:name=".LocationSelectionActivity" />
         <activity android:name=".MapActivity" />
     </application>
-
 </manifest>
