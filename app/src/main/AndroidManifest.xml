@@ -28,6 +28,5 @@
         <activity android:name=".ActivitySelectionActivity"></activity>
         <activity android:name=".LocationSelectionActivity"></activity>
         <activity android:name=".MapFiltersActivity"></activity>
-        <activity android:name=".MapActivity" />
     </application>
 </manifest>

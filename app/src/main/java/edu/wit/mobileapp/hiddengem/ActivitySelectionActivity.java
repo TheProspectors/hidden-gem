@@ -50,7 +50,7 @@ public class ActivitySelectionActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final Intent activitySelectedIntent = new Intent();
                 final Bundle activitySelectedBundle = new Bundle();
-                activitySelectedIntent.setClass(ActivitySelectionActivity.this, MapActivity.class);
+                activitySelectedIntent.setClass(ActivitySelectionActivity.this, MapFiltersActivity.class);
                 activitySelectedBundle.putInt("selected_activity", position);
                 activitySelectedIntent.putExtras(activitySelectedBundle);
                 activitySelectedIntent.putExtras(previousBundle);
