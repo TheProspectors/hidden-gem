@@ -26,9 +26,13 @@ import com.google.android.gms.maps.model.MarkerOptions;
  */
 
 public class MapFiltersActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
-    LatLng userPlaceLatLng;
-    String userPlaceAddress;
-    String userPlaceName;
+    private LatLng userPlaceLatLng;
+    private String userPlaceAddress;
+    private String userPlaceName;
+
+    private int priceValue = 0;
+    private int distanceValue = 0;
+    private int ratingsValue = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,11 +51,20 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         final SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        // App drawer
+        // App drawer components
         final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
         final SeekBar priceSeekBar = (SeekBar) findViewById(R.id.price_seekbar);
         final SeekBar distanceSeekBar = (SeekBar) findViewById(R.id.distance_seekbar);
+        final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
+
+        // Set default filter values in percentages
+        setPriceValue(100);
+        setDistanceValue(500);
+        setRatingsValue(200);
+
+        priceSeekBar.setProgress(priceValue);
+        distanceSeekBar.setProgress(distanceValue);
+        ratingsSeekBar.setProgress(ratingsValue);
 
         navigationView.setNavigationItemSelectedListener(this);
         priceSeekBar.setOnSeekBarChangeListener(seekBarListener);
@@ -69,27 +82,37 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             @Override
             public void onDrawerClosed(View drawerView) {
-                super.onDrawerClosed(drawerView);
-
-                int priceValue = priceSeekBar.getProgress();
-                int distanceValue = distanceSeekBar.getProgress();
-                int ratingsValue = ratingsSeekBar.getProgress();
-
-                if (priceValue != 0) {
-                    priceValue = (priceValue / 25) + 1;
-                }
-                if (distanceValue != 0) {
-                    distanceValue = (distanceValue / 5) + 1;
-                }
-                if (ratingsValue != 0) {
-                    ratingsValue = (ratingsValue / 25) + 1;
-                }
-
-                // Send new request to Google Maps API here
+                setPriceValue(priceSeekBar.getProgress());
+                setDistanceValue(distanceSeekBar.getProgress());
+                setRatingsValue(ratingsSeekBar.getProgress());
             }
         };
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+    }
+
+    private void setPriceValue(final int priceValue) {
+        int newPrice = priceValue;
+        if (priceValue != 0) {
+            newPrice = (priceValue / 25) + 1;
+        }
+        this.priceValue = newPrice;
+    }
+
+    private void setDistanceValue(final int distanceValue) {
+        int newDistance = distanceValue;
+        if (distanceValue != 0) {
+            newDistance = (distanceValue / 5) + 1;
+        }
+        this.distanceValue = newDistance;
+    }
+
+    private void setRatingsValue(final int ratingsValue) {
+        int newRatingsValue = ratingsValue;
+        if (ratingsValue != 0) {
+            newRatingsValue = (ratingsValue / 25) + 1;
+        }
+        this.ratingsValue = newRatingsValue;
     }
 
     // Moves the map to selected location once ready
