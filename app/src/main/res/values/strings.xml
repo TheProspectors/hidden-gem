@@ -3,6 +3,11 @@
     <string name="location_pick_text">Pick a Location</string>
     <string name="use_location_button_text">Use current location</string>
     <string name="go_button">Go!</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="price_field">Price</string>
+    <string name="distance_field">Distance</string>
+    <string name="ratings_field">Rating</string>
     <string name="select_social_activity">Select Social Activity</string>
     <string name="activity_icon">Activity Icon</string>
 </resources>

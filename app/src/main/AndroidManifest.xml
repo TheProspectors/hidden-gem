@@ -25,8 +25,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ActivitySelectionActivity" />
-        <activity android:name=".LocationSelectionActivity" />
+        <activity android:name=".ActivitySelectionActivity"></activity>
+        <activity android:name=".LocationSelectionActivity"></activity>
+        <activity android:name=".MapFiltersActivity"></activity>
         <activity android:name=".MapActivity" />
     </application>
 </manifest>
