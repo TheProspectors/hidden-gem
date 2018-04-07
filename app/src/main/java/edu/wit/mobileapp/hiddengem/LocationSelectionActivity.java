@@ -12,6 +12,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Spinner;
+
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceDetectionClient;
@@ -122,12 +124,15 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
 
     private void navigateToNextActivity(final Place place) {
         final Intent locationData = new Intent();
+        final Spinner ageRangeSpinner = findViewById(R.id.ageRangeSpinner);
+
         locationData.setClass(LocationSelectionActivity.this, ActivitySelectionActivity.class);
 
         final Bundle bundle = new Bundle();
         if (place != null) {
             bundle.putString("place", place.getAddress().toString());
         }
+        bundle.putInt("ageRange", ageRangeSpinner.getSelectedItemPosition());
 
         locationData.putExtras(bundle);
         startActivity(locationData);

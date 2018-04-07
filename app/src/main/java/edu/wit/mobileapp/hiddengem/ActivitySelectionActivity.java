@@ -47,7 +47,9 @@ public class ActivitySelectionActivity extends AppCompatActivity {
 
                 activitySelectedBundle.putInt("selectedActivity", position);
                 activitySelectedIntent.putExtras(activitySelectedBundle);
-                //TODO: connect to map activity
+
+                Intent intent = new Intent(getApplicationContext(), MapFiltersActivity.class);
+                startActivity(intent);
             }
         });
     }

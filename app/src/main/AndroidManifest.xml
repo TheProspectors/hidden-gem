@@ -21,7 +21,7 @@
         <activity android:name=".review"></activity>
         <activity android:name=".ActivitySelectionActivity"></activity>
         <activity android:name=".LocationSelectionActivity"></activity>
-
+        <activity android:name=".MapFiltersActivity"></activity>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBY4sTvGb7RCRQNM9bA7DY2L4uCG67w9xY"/>
