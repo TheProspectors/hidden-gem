@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="age_range_choices">
+        <item name="10-14">10 – 14</item>
+        <item name="14-18">14 – 18</item>
+        <item name="18-21">18 – 21</item>
+        <item name="21-30">21 – 30</item>
+        <item name="30-45">30 – 45</item>
+        <item name="45-60">45 – 60</item>
+        <item name="60-80">60 – 80</item>
+        <item name="80+">80+</item>
+    </string-array>
+</resources>
