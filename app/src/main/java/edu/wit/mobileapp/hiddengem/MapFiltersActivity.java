@@ -18,6 +18,47 @@ import android.widget.SeekBar;
  */
 
 public class MapFiltersActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.map_filters);
+
+        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        final SeekBar priceSeekBar = (SeekBar) findViewById(R.id.price_seekbar);
+        final SeekBar distanceSeekBar = (SeekBar) findViewById(R.id.distance_seekbar);
+        final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
+
+        navigationView.setNavigationItemSelectedListener(this);
+        priceSeekBar.setOnSeekBarChangeListener(seekBarListener);
+        distanceSeekBar.setOnSeekBarChangeListener(seekBarListener);
+        ratingsSeekBar.setOnSeekBarChangeListener(seekBarListener);
+
+        setSeekBarClickListener(priceSeekBar);
+        setSeekBarClickListener(distanceSeekBar);
+        setSeekBarClickListener(ratingsSeekBar);
+
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+
+                final int priceValue = priceSeekBar.getProgress();
+                final int distanceValue = distanceSeekBar.getProgress();
+                final int ratingsValue = ratingsSeekBar.getProgress();
+
+                // Make request to server here
+            }
+        };
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+    }
+
     // Sets the increments for each seekBar
     private SeekBar.OnSeekBarChangeListener seekBarListener = new SeekBar.OnSeekBarChangeListener() {
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -47,58 +88,6 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         }
     };
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.map_filters);
-
-        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        final SeekBar priceSeekBar = (SeekBar) findViewById(R.id.price_seekbar);
-        priceSeekBar.setOnSeekBarChangeListener(seekBarListener);
-
-        final SeekBar distanceSeekBar = (SeekBar) findViewById(R.id.distance_seekbar);
-        distanceSeekBar.setOnSeekBarChangeListener(seekBarListener);
-
-        final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
-        ratingsSeekBar.setOnSeekBarChangeListener(seekBarListener);
-
-        setSeekBarClickListener(priceSeekBar);
-        setSeekBarClickListener(distanceSeekBar);
-        setSeekBarClickListener(ratingsSeekBar);
-
-        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
-
-            @Override
-            public void onDrawerClosed(View drawerView) {
-                super.onDrawerClosed(drawerView);
-
-                int priceValue = priceSeekBar.getProgress();
-                int distanceValue = distanceSeekBar.getProgress();
-                int ratingsValue = ratingsSeekBar.getProgress();
-
-                if (priceValue != 0) {
-                    priceValue = (priceValue / 25) + 1;
-                }
-                if (distanceValue != 0) {
-                    distanceValue = (distanceValue / 5) + 1;
-                }
-                if (ratingsValue != 0) {
-                    ratingsValue = (ratingsValue / 25) + 1;
-                }
-
-                // Send new request to Google Maps API here
-            }
-        };
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-    }
 
     // Prevents the click event on the navigation view from firing if the click was performed on the seekBar
     private void setSeekBarClickListener(SeekBar seekBar) {
