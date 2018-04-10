@@ -148,7 +148,7 @@
                     android:layout_gravity="center"
                     android:layout_weight="1"
                     android:gravity="left"
-                    android:text="1mi"
+                    android:text=" 1 meter"
                     android:textColor="#000000" />
 
                 <TextView
@@ -157,7 +157,7 @@
                     android:layout_gravity="center"
                     android:layout_weight="1"
                     android:gravity="right"
-                    android:text="20mi"
+                    android:text="5000 meters"
                     android:textColor="#000000" />
             </LinearLayout>
 

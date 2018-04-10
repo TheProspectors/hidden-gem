@@ -25,6 +25,12 @@ import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -34,24 +40,13 @@ import com.google.firebase.auth.FirebaseUser;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-
 /**
  * Created by ollilaj on 3/25/2018.
  */
 
 public class MapFiltersActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
     private final String TAG = "MapFiltersActivity";
-    private final String SERVER_URL = "https://hidden-gems-4e29c.appspot.com";
-
-    private LatLng userPlaceLatLng;
-    private String userPlaceAddress;
-    private String userPlaceName;
+    private final String SERVER_URL = "https://hidden-gems-4e29c.appspot.com/_ah/api/hiddengemPlaces/v1/places";
 
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
@@ -59,6 +54,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     private int priceValue = 0;
     private int distanceValue = 0;
     private int ratingsValue = 0;
+    private LatLng userLocation = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -80,11 +76,11 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
 
         // Get location data from bundle
         final Bundle previousBundle = getIntent().getExtras();
+        final String activityType = previousBundle.getString("activity");
         final double latitude = previousBundle.getDouble("place_latitude");
         final double longitude = previousBundle.getDouble("place_longitude");
-        userPlaceLatLng = new LatLng(latitude, longitude);
-        userPlaceAddress = previousBundle.getString("place_address");
-        userPlaceName = previousBundle.getString("place_name");
+        final LatLng userPlaceLatLng = new LatLng(latitude, longitude);
+        userLocation = userPlaceLatLng;
 
         // Load map
         final SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -118,11 +114,11 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
 
-                final int priceFilter = priceSeekBar.getProgress();
-                final int distanceFilter = distanceSeekBar.getProgress();
-                final int ratingsFilter = ratingsSeekBar.getProgress();
+                final int priceFilter = priceSeekBar.getProgress() / 20;
+                final int distanceFilter = distanceSeekBar.getProgress() * 50;
+                final int ratingsFilter = ratingsSeekBar.getProgress() / 20;
 
-                getPlaces(priceFilter, distanceFilter, ratingsFilter);
+                getPlaces(userPlaceLatLng, priceFilter, distanceFilter, ratingsFilter, activityType);
             }
         };
         drawer.addDrawerListener(toggle);
@@ -222,7 +218,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         return false;
     }
 
-    private void getPlaces(final int priceFilter, final int distanceFilter, final int ratingsFilter) {
+    private void getPlaces(final LatLng latLng, final int priceFilter, final int distanceFilter, final int ratingsFilter, final String activityType) {
         if (firebaseUser == null) {
             Log.e(TAG, "Firebase user is set to null. Cannot make request to server");
             return;
@@ -230,21 +226,26 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
 
         try {
             final JSONObject requestJsonObject = new JSONObject();
-            requestJsonObject.put("uid", firebaseUser.getUid());
+            requestJsonObject.put("userUid", firebaseUser.getUid());
+            requestJsonObject.put("latitude", latLng.latitude);
+            requestJsonObject.put("longitude", latLng.longitude);
             requestJsonObject.put("priceFilter", priceFilter);
             requestJsonObject.put("distanceFilter", distanceFilter);
             requestJsonObject.put("ratingsFilter", ratingsFilter);
+            requestJsonObject.put("activityCategory", activityType);
 
             final JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(SERVER_URL, requestJsonObject, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject responseJsonObject) {
                     Log.d(TAG, responseJsonObject.toString());
+                    Log.d(TAG, "Success!");
                 }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError volleyError) {
-                    Log.d(TAG,"Error :(");
+                    Log.d(TAG, "Error :(");
                     Log.d(TAG, String.valueOf(volleyError.getMessage()));
+                    Log.d(TAG, requestJsonObject.toString());
                     volleyError.printStackTrace();
                 }
             });
@@ -253,5 +254,13 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onMapReady(final GoogleMap googleMap) {
+        googleMap.moveCamera(CameraUpdateFactory.newLatLng(userLocation));
+        googleMap.moveCamera(CameraUpdateFactory.zoomTo(googleMap.getMaxZoomLevel() * 0.6f));
+        googleMap.addMarker(new MarkerOptions().position(userLocation));
+        googleMap.setBuildingsEnabled(true);
     }
 }

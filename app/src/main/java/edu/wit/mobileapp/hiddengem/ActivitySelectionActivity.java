@@ -53,7 +53,7 @@ public class ActivitySelectionActivity extends AppCompatActivity {
                 final Intent activitySelectedIntent = new Intent();
                 final Bundle activitySelectedBundle = new Bundle();
                 activitySelectedIntent.setClass(ActivitySelectionActivity.this, MapFiltersActivity.class);
-                activitySelectedBundle.putInt("selected_activity", position);
+                activitySelectedBundle.putString("activity", "bar");
                 activitySelectedIntent.putExtras(activitySelectedBundle);
                 activitySelectedIntent.putExtras(previousBundle);
 
