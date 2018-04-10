@@ -47,13 +47,14 @@ public class ActivitySelectionActivity extends AppCompatActivity {
         final ListView listView = (ListView) findViewById(R.id.ActivityListView);
         listView.setAdapter(adapter);
 
+        final String[] activityType = getResources().getStringArray(R.array.label_names);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final Intent activitySelectedIntent = new Intent();
                 final Bundle activitySelectedBundle = new Bundle();
                 activitySelectedIntent.setClass(ActivitySelectionActivity.this, MapFiltersActivity.class);
-                activitySelectedBundle.putString("activity", "bar");
+                activitySelectedBundle.putString("activity", activityType[position]);
                 activitySelectedIntent.putExtras(activitySelectedBundle);
                 activitySelectedIntent.putExtras(previousBundle);
 

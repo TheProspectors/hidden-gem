@@ -25,20 +25,32 @@ import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBufferResponse;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * Created by ollilaj on 3/25/2018.
@@ -46,15 +58,15 @@ import org.json.JSONObject;
 
 public class MapFiltersActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
     private final String TAG = "MapFiltersActivity";
-    private final String SERVER_URL = "https://hidden-gems-4e29c.appspot.com/_ah/api/hiddengemPlaces/v1/places";
+    //hidden-gems-4e29c.appspot.com
+    private final String SERVER_URL = "http://10.0.2.2:8080/_ah/api/hiddengemPlaces/v1/places";
 
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
+    private FirebaseFirestore db;
     private RequestQueue requestQueue;
-    private int priceValue = 0;
-    private int distanceValue = 0;
-    private int ratingsValue = 0;
-    private LatLng userLocation = null;
+    private LatLng userLocation;
+    private GoogleMap googleMap;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -63,6 +75,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
 
         // Firebase
         firebaseAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         // Setup request queue
         // Instantiate the cache
@@ -92,8 +105,11 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         final SeekBar distanceSeekBar = (SeekBar) findViewById(R.id.distance_seekbar);
         final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
 
+        int priceValue = 0;
         priceSeekBar.setProgress(priceValue);
+        int distanceValue = 0;
         distanceSeekBar.setProgress(distanceValue);
+        int ratingsValue = 0;
         ratingsSeekBar.setProgress(ratingsValue);
 
         navigationView.setNavigationItemSelectedListener(this);
@@ -239,6 +255,15 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
                 public void onResponse(JSONObject responseJsonObject) {
                     Log.d(TAG, responseJsonObject.toString());
                     Log.d(TAG, "Success!");
+                    try {
+                        final JSONArray placeList = responseJsonObject.getJSONArray("placeList");
+                        for (int i = 0; i < placeList.length(); i++) {
+                            final String placeId = placeList.getJSONObject(i).getString("placeId");
+                            addMarkerToMap(placeId);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }, new Response.ErrorListener() {
                 @Override
@@ -256,10 +281,36 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         }
     }
 
+    private void addMarkerToMap(final String placeId) {
+        if (googleMap != null) {
+            final GeoDataClient geoDataClient = Places.getGeoDataClient(this);
+            geoDataClient.getPlaceById(placeId).addOnSuccessListener(new OnSuccessListener<PlaceBufferResponse>() {
+                @SuppressLint("RestrictedApi")
+                @Override
+                public void onSuccess(PlaceBufferResponse places) {
+                    resetMap(googleMap);
+                    for (final Place place : places) {
+                        googleMap.addMarker(new MarkerOptions()
+                                .position(place.getLatLng())
+                                .title(place.getName().toString()));
+                        Log.i(TAG, "Place found: " + place.getName());
+                        Log.i(TAG, "Place id: " + place.getId());
+                    }
+                    places.release();
+                }
+            });
+        }
+    }
+
     @Override
     public void onMapReady(final GoogleMap googleMap) {
+        resetMap(googleMap);
+        this.googleMap = googleMap;
+    }
+
+    private void resetMap(final GoogleMap googleMap) {
+        googleMap.moveCamera(CameraUpdateFactory.zoomTo(googleMap.getMaxZoomLevel() * 0.7f));
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(userLocation));
-        googleMap.moveCamera(CameraUpdateFactory.zoomTo(googleMap.getMaxZoomLevel() * 0.6f));
         googleMap.addMarker(new MarkerOptions().position(userLocation));
         googleMap.setBuildingsEnabled(true);
     }
