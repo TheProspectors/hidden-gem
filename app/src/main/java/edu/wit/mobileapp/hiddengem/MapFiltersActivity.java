@@ -3,6 +3,7 @@ package edu.wit.mobileapp.hiddengem;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -35,6 +36,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -64,6 +66,8 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     private final int INITIAL_PRICE_VALUE = 50;
     private final int INITIAL_DISTANCE_VALUE = 100;
     private final int INITIAL_RATINGS_VALUE = 0;
+
+    private BottomSheetBehavior bottomSheetBehavior;
 
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
@@ -109,6 +113,9 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         final SeekBar priceSeekBar = (SeekBar) findViewById(R.id.price_seekbar);
         final SeekBar distanceSeekBar = (SeekBar) findViewById(R.id.distance_seekbar);
         final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
+
+        View bottomSheet = findViewById(R.id.reviewSheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
 
         priceSeekBar.setProgress(INITIAL_PRICE_VALUE);
         distanceSeekBar.setProgress(INITIAL_DISTANCE_VALUE);
@@ -320,6 +327,19 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
             @Override
             public void onMapLoaded() {
                 updateMap(userLocation);
+            }
+        });
+
+        this.googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                }
+                else{
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                }
+                return true;
             }
         });
     }

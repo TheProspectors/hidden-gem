@@ -1,9 +1,9 @@
 package edu.wit.mobileapp.hiddengem;
 
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 
 
@@ -11,6 +11,8 @@ public class review extends AppCompatActivity implements View.OnClickListener {
 
     ImageButton likeButton;
     ImageButton dislikeButton;
+    private BottomSheetBehavior bottomSheetBehavior;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +24,7 @@ public class review extends AppCompatActivity implements View.OnClickListener {
 
         likeButton.setOnClickListener(this);
         dislikeButton.setOnClickListener(this);
+
     }
 
     public void onClick(View v) {

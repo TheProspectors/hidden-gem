@@ -5,6 +5,8 @@
     <string name="go_button">Go!</string>
     <string name="like_button">Like</string>
     <string name="dislike_button">Dislike</string>
+    <string name="likes">Likes</string>
+    <string name="dislikes">Dislikes</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="price_field">Price</string>
