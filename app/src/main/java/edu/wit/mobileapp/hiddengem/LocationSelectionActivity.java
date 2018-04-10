@@ -117,26 +117,30 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
                 } else {
                     Log.d("PLACE", "No likely place could be determined");
                 }
-                onPlaceSelected(bestLikelihood.getPlace());
+                navigateToNextActivity(bestLikelihood.getPlace());
             }
         });
     }
 
     private void navigateToNextActivity(final Place place) {
-        final Intent locationData = new Intent();
-        final Spinner ageRangeSpinner = findViewById(R.id.ageRangeSpinner);
-
-        locationData.setClass(LocationSelectionActivity.this, ActivitySelectionActivity.class);
-
-        final Bundle bundle = new Bundle();
         if (place != null) {
-            bundle.putString("place", place.getAddress().toString());
-        }
-        bundle.putInt("ageRange", ageRangeSpinner.getSelectedItemPosition());
+            final Spinner ageRangeSpinner = findViewById(R.id.ageRangeSpinner);
+            final Intent locationData = new Intent();
+            locationData.setClass(LocationSelectionActivity.this, ActivitySelectionActivity.class);
 
-        locationData.putExtras(bundle);
-        startActivity(locationData);
-        finish();
+            final Bundle bundle = new Bundle();
+            bundle.putString("place_address", place.getAddress().toString());
+            bundle.putString("place_name", place.getName().toString());
+            bundle.putDouble("place_latitude", place.getLatLng().latitude);
+            bundle.putDouble("place_longitude", place.getLatLng().longitude);
+            bundle.putInt("ageRange", ageRangeSpinner.getSelectedItemPosition());
+            locationData.putExtras(bundle);
+
+            startActivity(locationData);
+            finish();
+        } else {
+            Log.e("PLACE", "Selected place is null. Cannot start new intent");
+        }
     }
 
     @Override

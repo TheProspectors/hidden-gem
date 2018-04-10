@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.drawable.VectorDrawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -23,6 +24,11 @@ public class ActivitySelectionActivity extends AppCompatActivity {
                 R.drawable.ic_local_movies_black_24dp,
                 R.drawable.ic_local_play_black_24dp};
         final List<ActivityListItem> activityListItems = new ArrayList<>();
+
+        Log.v("myapp", "ActivitySelectionActivity is called");
+
+        final Bundle previousBundle = getIntent().getExtras();
+
 
         for (int i = 0; i < labels.length; i++) {
             final String label = labels[i];
@@ -44,12 +50,13 @@ public class ActivitySelectionActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final Intent activitySelectedIntent = new Intent();
                 final Bundle activitySelectedBundle = new Bundle();
-
-                activitySelectedBundle.putInt("selectedActivity", position);
+                activitySelectedIntent.setClass(ActivitySelectionActivity.this, MapFiltersActivity.class);
+                activitySelectedBundle.putInt("selected_activity", position);
                 activitySelectedIntent.putExtras(activitySelectedBundle);
+                activitySelectedIntent.putExtras(previousBundle);
 
-                Intent intent = new Intent(getApplicationContext(), MapFiltersActivity.class);
-                startActivity(intent);
+                startActivity(activitySelectedIntent);
+                finish();
             }
         });
     }
