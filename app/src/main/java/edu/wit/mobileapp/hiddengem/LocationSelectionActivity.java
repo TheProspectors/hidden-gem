@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
@@ -123,6 +124,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
 
     private void navigateToNextActivity(final Place place) {
         if (place != null) {
+            final Spinner ageRangeSpinner = findViewById(R.id.ageRangeSpinner);
             final Intent locationData = new Intent();
             locationData.setClass(LocationSelectionActivity.this, ActivitySelectionActivity.class);
 
@@ -131,15 +133,10 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
             bundle.putString("place_name", place.getName().toString());
             bundle.putDouble("place_latitude", place.getLatLng().latitude);
             bundle.putDouble("place_longitude", place.getLatLng().longitude);
-
-            Log.v("myapp", "navigateToNextActivity is called");
-            Log.v("myapp", "place_address = " + place.getAddress().toString());
-            Log.v("myapp", "place_name = " + place.getName().toString());
-
+            bundle.putInt("ageRange", ageRangeSpinner.getSelectedItemPosition());
             locationData.putExtras(bundle);
 
             startActivity(locationData);
-
             finish();
         } else {
             Log.e("PLACE", "Selected place is null. Cannot start new intent");
