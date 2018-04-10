@@ -33,7 +33,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -48,10 +48,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
 
 /**
  * Created by ollilaj on 3/25/2018.
@@ -132,7 +129,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
 
-                updateMap(userPlaceLatLng);
+                updateMapMarkers(userPlaceLatLng);
             }
         };
         drawer.addDrawerListener(toggle);
@@ -232,7 +229,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         return false;
     }
 
-    private void updateMap(LatLng locationToUpdateAround){
+    private void updateMapMarkers(LatLng locationToUpdateAround){
         final SeekBar priceSeekBar = (SeekBar) findViewById(R.id.price_seekbar);
         final SeekBar distanceSeekBar = (SeekBar) findViewById(R.id.distance_seekbar);
         final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
@@ -319,7 +316,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         this.googleMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
             public void onMapLoaded() {
-                updateMap(userLocation);
+                updateMapMarkers(userLocation);
             }
         });
     }
@@ -327,7 +324,10 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     private void resetMap(final GoogleMap googleMap) {
         googleMap.moveCamera(CameraUpdateFactory.zoomTo(googleMap.getMaxZoomLevel() * 0.7f));
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(userLocation));
-        googleMap.addMarker(new MarkerOptions().position(userLocation));
+        googleMap.addMarker(new MarkerOptions()
+                .position(userLocation)
+                .title("Your Location")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_my_location)));
         googleMap.setBuildingsEnabled(true);
     }
 }
