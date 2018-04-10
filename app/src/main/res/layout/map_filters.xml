@@ -31,7 +31,7 @@
                 android:textColor="#000000"
                 android:textSize="22sp"
                 android:layout_marginStart="25dp"
-                android:layout_marginTop="70dp" />
+                android:layout_marginTop="70dp"/>
 
             <SeekBar
                 android:id="@+id/price_seekbar"
@@ -42,7 +42,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
                 android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp" />
+                android:layout_marginBottom="10dp"/>
 
             <LinearLayout
                 android:id="@+id/labelsl1"
@@ -60,7 +60,7 @@
                     android:layout_weight="1"
                     android:gravity="left"
                     android:text="1"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -70,7 +70,7 @@
                     android:gravity="left"
                     android:text="2"
                     android:layout_marginLeft="15dp"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -79,7 +79,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:text="3"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -89,7 +89,7 @@
                     android:gravity="right"
                     android:layout_marginRight="15dp"
                     android:text="4"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -98,7 +98,7 @@
                     android:layout_weight="1"
                     android:gravity="right"
                     android:text="5"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"/>
             </LinearLayout>
 
             <TextView
@@ -107,7 +107,7 @@
                 android:text="@string/distance_field"
                 android:textColor="#000000"
                 android:textSize="22sp"
-                android:layout_marginStart="25dp" />
+                android:layout_marginStart="25dp"/>
 
             <SeekBar
                 android:id="@+id/distance_seekbar"
@@ -118,7 +118,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
                 android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp" />
+                android:layout_marginBottom="10dp"/>
 
             <LinearLayout
                 android:id="@+id/labelsl2"
@@ -136,7 +136,7 @@
                     android:layout_weight="1"
                     android:gravity="left"
                     android:text="1mi"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -145,7 +145,7 @@
                     android:layout_weight="1"
                     android:gravity="right"
                     android:text="20mi"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"/>
             </LinearLayout>
 
             <TextView
@@ -154,7 +154,7 @@
                 android:text="@string/ratings_field"
                 android:textColor="#000000"
                 android:textSize="22sp"
-                android:layout_marginStart="25dp" />
+                android:layout_marginStart="25dp"/>
 
             <SeekBar
                 android:id="@+id/ratings_seekbar"
@@ -165,7 +165,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
                 android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp" />
+                android:layout_marginBottom="10dp"/>
 
             <LinearLayout
                 android:id="@+id/labelsl3"
@@ -182,7 +182,7 @@
                     android:layout_weight="1"
                     android:gravity="left"
                     android:text="1"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -192,7 +192,7 @@
                     android:gravity="left"
                     android:text="2"
                     android:layout_marginLeft="15dp"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -201,7 +201,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:text="3"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -211,7 +211,7 @@
                     android:gravity="right"
                     android:layout_marginRight="15dp"
                     android:text="4"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -220,7 +220,7 @@
                     android:layout_weight="1"
                     android:gravity="right"
                     android:text="5"
-                    android:textColor="#000000" />
+                    android:textColor="#000000"/>
             </LinearLayout>
 
         </LinearLayout>
