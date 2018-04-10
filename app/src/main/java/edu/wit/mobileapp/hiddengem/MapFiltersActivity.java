@@ -61,8 +61,8 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     private final String TAG = "MapFiltersActivity";
     //hidden-gems-4e29c.appspot.com
     private final String SERVER_URL = "https://hidden-gems-4e29c.appspot.com/_ah/api/hiddengemPlaces/v1/places";
-    private final int INITIAL_PRICE_VALUE = 0;
-    private final int INITIAL_DISTANCE_VALUE = 5000;
+    private final int INITIAL_PRICE_VALUE = 50;
+    private final int INITIAL_DISTANCE_VALUE = 100;
     private final int INITIAL_RATINGS_VALUE = 0;
 
     private FirebaseAuth firebaseAuth;
@@ -316,7 +316,12 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     public void onMapReady(final GoogleMap googleMap) {
         resetMap(googleMap);
         this.googleMap = googleMap;
-        updateMap(userLocation);
+        this.googleMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+            @Override
+            public void onMapLoaded() {
+                updateMap(userLocation);
+            }
+        });
     }
 
     private void resetMap(final GoogleMap googleMap) {
