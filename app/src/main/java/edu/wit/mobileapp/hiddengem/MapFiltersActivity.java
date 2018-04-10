@@ -50,6 +50,7 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 
 /**
@@ -59,13 +60,17 @@ import java.util.Random;
 public class MapFiltersActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
     private final String TAG = "MapFiltersActivity";
     //hidden-gems-4e29c.appspot.com
-    private final String SERVER_URL = "http://10.0.2.2:8080/_ah/api/hiddengemPlaces/v1/places";
+    private final String SERVER_URL = "https://hidden-gems-4e29c.appspot.com/_ah/api/hiddengemPlaces/v1/places";
+    private final int INITIAL_PRICE_VALUE = 0;
+    private final int INITIAL_DISTANCE_VALUE = 5000;
+    private final int INITIAL_RATINGS_VALUE = 0;
 
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
     private FirebaseFirestore db;
     private RequestQueue requestQueue;
     private LatLng userLocation;
+    private String activityType;
     private GoogleMap googleMap;
 
     @Override
@@ -89,7 +94,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
 
         // Get location data from bundle
         final Bundle previousBundle = getIntent().getExtras();
-        final String activityType = previousBundle.getString("activity");
+        activityType = Objects.requireNonNull(previousBundle).getString("activity");
         final double latitude = previousBundle.getDouble("place_latitude");
         final double longitude = previousBundle.getDouble("place_longitude");
         final LatLng userPlaceLatLng = new LatLng(latitude, longitude);
@@ -105,12 +110,9 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         final SeekBar distanceSeekBar = (SeekBar) findViewById(R.id.distance_seekbar);
         final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
 
-        int priceValue = 0;
-        priceSeekBar.setProgress(priceValue);
-        int distanceValue = 0;
-        distanceSeekBar.setProgress(distanceValue);
-        int ratingsValue = 0;
-        ratingsSeekBar.setProgress(ratingsValue);
+        priceSeekBar.setProgress(INITIAL_PRICE_VALUE);
+        distanceSeekBar.setProgress(INITIAL_DISTANCE_VALUE);
+        ratingsSeekBar.setProgress(INITIAL_RATINGS_VALUE);
 
         navigationView.setNavigationItemSelectedListener(this);
         priceSeekBar.setOnSeekBarChangeListener(seekBarListener);
@@ -130,11 +132,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
 
-                final int priceFilter = priceSeekBar.getProgress() / 20;
-                final int distanceFilter = distanceSeekBar.getProgress() * 50;
-                final int ratingsFilter = ratingsSeekBar.getProgress() / 20;
-
-                getPlaces(userPlaceLatLng, priceFilter, distanceFilter, ratingsFilter, activityType);
+                updateMap(userPlaceLatLng);
             }
         };
         drawer.addDrawerListener(toggle);
@@ -234,7 +232,19 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         return false;
     }
 
-    private void getPlaces(final LatLng latLng, final int priceFilter, final int distanceFilter, final int ratingsFilter, final String activityType) {
+    private void updateMap(LatLng locationToUpdateAround){
+        final SeekBar priceSeekBar = (SeekBar) findViewById(R.id.price_seekbar);
+        final SeekBar distanceSeekBar = (SeekBar) findViewById(R.id.distance_seekbar);
+        final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
+
+        final int priceFilter = priceSeekBar.getProgress() / 20;
+        final int distanceFilter = distanceSeekBar.getProgress() * 50;
+        final int ratingsFilter = ratingsSeekBar.getProgress() / 20;
+
+        getPlaces(locationToUpdateAround, priceFilter, distanceFilter, ratingsFilter);
+    }
+
+    private void getPlaces(final LatLng latLng, final int priceFilter, final int distanceFilter, final int ratingsFilter) {
         if (firebaseUser == null) {
             Log.e(TAG, "Firebase user is set to null. Cannot make request to server");
             return;
@@ -306,6 +316,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     public void onMapReady(final GoogleMap googleMap) {
         resetMap(googleMap);
         this.googleMap = googleMap;
+        updateMap(userLocation);
     }
 
     private void resetMap(final GoogleMap googleMap) {
