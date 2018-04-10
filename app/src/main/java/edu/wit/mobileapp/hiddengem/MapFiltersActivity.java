@@ -1,5 +1,6 @@
 package edu.wit.mobileapp.hiddengem;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -33,17 +34,31 @@ import com.google.firebase.auth.FirebaseUser;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 /**
  * Created by ollilaj on 3/25/2018.
  */
 
-public class MapFiltersActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MapFiltersActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
     private final String TAG = "MapFiltersActivity";
     private final String SERVER_URL = "https://hidden-gems-4e29c.appspot.com";
+
+    private LatLng userPlaceLatLng;
+    private String userPlaceAddress;
+    private String userPlaceName;
 
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
     private RequestQueue requestQueue;
+    private int priceValue = 0;
+    private int distanceValue = 0;
+    private int ratingsValue = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -63,10 +78,27 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         // Start the queue
         requestQueue.start();
 
+        // Get location data from bundle
+        final Bundle previousBundle = getIntent().getExtras();
+        final double latitude = previousBundle.getDouble("place_latitude");
+        final double longitude = previousBundle.getDouble("place_longitude");
+        userPlaceLatLng = new LatLng(latitude, longitude);
+        userPlaceAddress = previousBundle.getString("place_address");
+        userPlaceName = previousBundle.getString("place_name");
+
+        // Load map
+        final SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        // App drawer components
         final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         final SeekBar priceSeekBar = (SeekBar) findViewById(R.id.price_seekbar);
         final SeekBar distanceSeekBar = (SeekBar) findViewById(R.id.distance_seekbar);
         final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
+
+        priceSeekBar.setProgress(priceValue);
+        distanceSeekBar.setProgress(distanceValue);
+        ratingsSeekBar.setProgress(ratingsValue);
 
         navigationView.setNavigationItemSelectedListener(this);
         priceSeekBar.setOnSeekBarChangeListener(seekBarListener);
@@ -81,9 +113,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         setSupportActionBar(toolbar);
 
         final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
-
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             @Override
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
@@ -151,6 +181,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     };
 
     // Prevents the click event on the navigation view from firing if the click was performed on the seekBar
+    @SuppressLint("ClickableViewAccessibility")
     private void setSeekBarClickListener(SeekBar seekBar) {
         seekBar.setOnTouchListener(new NavigationView.OnTouchListener() {
             @Override
