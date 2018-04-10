@@ -8,20 +8,60 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.SeekBar;
+import android.widget.Toast;
+
+import com.android.volley.Cache;
+import com.android.volley.Network;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.BasicNetwork;
+import com.android.volley.toolbox.DiskBasedCache;
+import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by ollilaj on 3/25/2018.
  */
 
 public class MapFiltersActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    private final String TAG = "MapFiltersActivity";
+    private final String SERVER_URL = "https://hidden-gems-4e29c.appspot.com";
+
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
+    private RequestQueue requestQueue;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_filters);
+
+        // Firebase
+        firebaseAuth = FirebaseAuth.getInstance();
+
+        // Setup request queue
+        // Instantiate the cache
+        final Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
+        // Set up the network to use HttpURLConnection as the HTTP client.
+        final Network network = new BasicNetwork(new HurlStack());
+        // Instantiate the RequestQueue with the cache and network.
+        requestQueue = new RequestQueue(cache, network);
+        // Start the queue
+        requestQueue.start();
 
         final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         final SeekBar priceSeekBar = (SeekBar) findViewById(R.id.price_seekbar);
@@ -48,15 +88,37 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
 
-                final int priceValue = priceSeekBar.getProgress();
-                final int distanceValue = distanceSeekBar.getProgress();
-                final int ratingsValue = ratingsSeekBar.getProgress();
+                final int priceFilter = priceSeekBar.getProgress();
+                final int distanceFilter = distanceSeekBar.getProgress();
+                final int ratingsFilter = ratingsSeekBar.getProgress();
 
-                // Make request to server here
+                getPlaces(priceFilter, distanceFilter, ratingsFilter);
             }
         };
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        firebaseAuth.signInAnonymously()
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(TAG, "signInAnonymously:success");
+                            firebaseUser = firebaseAuth.getCurrentUser();
+                            Log.i(TAG, "Firebase User ID: " + firebaseUser.getUid());
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(TAG, "signInAnonymously:failure", task.getException());
+                            Toast.makeText(MapFiltersActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 
     // Sets the increments for each seekBar
@@ -87,7 +149,6 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         public void onStopTrackingTouch(SeekBar seekBar) {
         }
     };
-
 
     // Prevents the click event on the navigation view from firing if the click was performed on the seekBar
     private void setSeekBarClickListener(SeekBar seekBar) {
@@ -128,5 +189,38 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         return false;
+    }
+
+    private void getPlaces(final int priceFilter, final int distanceFilter, final int ratingsFilter) {
+        if (firebaseUser == null) {
+            Log.e(TAG, "Firebase user is set to null. Cannot make request to server");
+            return;
+        }
+
+        try {
+            final JSONObject requestJsonObject = new JSONObject();
+            requestJsonObject.put("uid", firebaseUser.getUid());
+            requestJsonObject.put("priceFilter", priceFilter);
+            requestJsonObject.put("distanceFilter", distanceFilter);
+            requestJsonObject.put("ratingsFilter", ratingsFilter);
+
+            final JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(SERVER_URL, requestJsonObject, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject responseJsonObject) {
+                    Log.d(TAG, responseJsonObject.toString());
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError volleyError) {
+                    Log.d(TAG,"Error :(");
+                    Log.d(TAG, String.valueOf(volleyError.getMessage()));
+                    volleyError.printStackTrace();
+                }
+            });
+
+            requestQueue.add(jsonObjectRequest);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }
