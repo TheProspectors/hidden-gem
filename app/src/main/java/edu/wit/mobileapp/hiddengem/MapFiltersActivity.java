@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Cache;
@@ -39,17 +40,23 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -308,9 +315,10 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
                 public void onSuccess(PlaceBufferResponse places) {
                     resetMap(googleMap);
                     for (final Place place : places) {
-                        googleMap.addMarker(new MarkerOptions()
+                        Marker marker = googleMap.addMarker(new MarkerOptions()
                                 .position(place.getLatLng())
                                 .title(place.getName().toString()));
+                        marker.setTag(place);
                         Log.i(TAG, "Place found: " + place.getName());
                         Log.i(TAG, "Place id: " + place.getId());
                     }
@@ -338,7 +346,29 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 }
                 Log.i(TAG, "User selected: " + marker.getTitle());
+                final Place selectedPlace = (Place) marker.getTag();
+                if (selectedPlace != null){
+                    final String selectedPlaceId = selectedPlace.getId();
+                    Log.i(TAG, "Selected place ID: " + selectedPlaceId);
+                    db.collection("locations").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    Log.d(TAG, document.getId() + " => " + document.getData());
+                                    if (document.contains(selectedPlaceId)){
+                                        updateBottomSheet(selectedPlace, (Map<String, Long>) document.get(selectedPlaceId));
+                                        return;
+                                    }
+                                }
+                                addLocationToFirebase(selectedPlace);
+                            } else {
+                                Log.w(TAG, "Error getting documents.", task.getException());
+                            }
+                        }
+                    });
 
+                }
                 return false;
             }
         });
@@ -351,6 +381,36 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
                 }
             }
         });
+    }
+
+    private void addLocationToFirebase(Place selectedPlace){
+        Map<String, Long> locationRatings = new HashMap<>();
+        locationRatings.put("likes", (long) 0);
+        locationRatings.put("dislikes", (long) 0);
+        Map<String, Map> databaseEntry = new HashMap<>();
+        databaseEntry.put(selectedPlace.getId(), locationRatings);
+        db.collection("locations")
+                .add(databaseEntry)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error adding document", e);
+                    }
+                });
+        updateBottomSheet(selectedPlace, locationRatings);
+    }
+
+    private void updateBottomSheet(Place selectedPlace, Map<String, Long> locationRatings){
+        TextView likesTextView = findViewById(R.id.likesTextView);
+        TextView dislikesTextView = findViewById(R.id.dislikesTextView);
+        likesTextView.setText(getString(R.string.likes) + ": " + locationRatings.get("likes"));
+        dislikesTextView.setText(getString(R.string.dislikes) + ": " + locationRatings.get("dislikes"));
     }
 
     private void resetMap(final GoogleMap googleMap) {
