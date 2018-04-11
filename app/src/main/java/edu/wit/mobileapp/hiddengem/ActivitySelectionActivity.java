@@ -24,7 +24,8 @@ public class ActivitySelectionActivity extends AppCompatActivity {
         final int[] imageIds = {R.drawable.ic_local_dining_black_24dp,
                 R.drawable.ic_fitness_center_black_24dp,
                 R.drawable.ic_local_movies_black_24dp,
-                R.drawable.ic_local_play_black_24dp};
+                R.drawable.ic_local_play_black_24dp,
+                R.drawable.ic_golf_course_black_24dp};
         final List<ActivityListItem> activityListItems = new ArrayList<>();
 
         Log.v("myapp", "ActivitySelectionActivity is called");

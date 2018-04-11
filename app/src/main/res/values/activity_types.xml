@@ -21,5 +21,6 @@
         <item type="id" name="ic_fitness_center_black_24dp" />
         <item type="id" name="ic_local_movies_black_24dp" />
         <item type="id" name="ic_local_play_black_24dp" />
+        <item type="id" name="ic_golf_course_black_24dp" />
     </array>
 </resources>
