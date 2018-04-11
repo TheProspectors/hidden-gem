@@ -71,7 +71,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     private final int INITIAL_DISTANCE_VALUE = 100;
     private final int INITIAL_RATINGS_VALUE = 0;
 
-    private BottomSheetBehavior bottomSheetBehavior;
+    private BottomSheetBehavior<View> bottomSheetBehavior;
 
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
@@ -251,7 +251,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         return false;
     }
 
-    private void updateMapMarkers(LatLng locationToUpdateAround){
+    private void updateMapMarkers(LatLng locationToUpdateAround) {
         final SeekBar priceSeekBar = (SeekBar) findViewById(R.id.price_seekbar);
         final SeekBar distanceSeekBar = (SeekBar) findViewById(R.id.distance_seekbar);
         final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
@@ -351,7 +351,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
                 }
                 Log.i(TAG, "User selected: " + marker.getTitle());
                 final Place selectedPlace = (Place) marker.getTag();
-                if (selectedPlace != null){
+                if (selectedPlace != null) {
                     final String selectedPlaceId = selectedPlace.getId();
                     Log.i(TAG, "Selected place ID: " + selectedPlaceId);
                     db.collection("locations").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -360,9 +360,8 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
                             if (task.isSuccessful()) {
                                 for (QueryDocumentSnapshot document : task.getResult()) {
                                     Log.d(TAG, document.getId() + " => " + document.getData());
-                                    if (document.contains(selectedPlaceId)){
-                                        updateBottomSheet(selectedPlace,
-                                                ((Map<String, Map>) document.get(selectedPlaceId)).get(userAgeRange.toString()));
+                                    if (document.contains(selectedPlaceId)) {
+                                        updateBottomSheet(selectedPlace);
                                         return;
                                     }
                                 }
@@ -388,16 +387,16 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         });
     }
 
-    private void addLocationToFirebase(Place selectedPlace){
+    private void addLocationToFirebase(Place selectedPlace) {
         Map<String, Long> emptyLocationRating = new HashMap<>();
-        Map<String, Map> ageRanges = new HashMap<>();
-        Map<String, Map> databaseEntry = new HashMap<>();
+        Map<String, Map<String, Long>> ageRanges = new HashMap<>();
+        Map<String, Map<String, Map<String, Long>>> databaseEntry = new HashMap<>();
         String[] ageRangeChoices = getResources().getStringArray(R.array.age_range_choices);
 
         emptyLocationRating.put("likes", (long) 0);
         emptyLocationRating.put("dislikes", (long) 0);
 
-        for (Integer i = 0; i < ageRangeChoices.length; i++){
+        for (Integer i = 0; i < ageRangeChoices.length; i++) {
             ageRanges.put(i.toString(), emptyLocationRating);
         }
 
@@ -417,14 +416,43 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
                         Log.w(TAG, "Error adding document", e);
                     }
                 });
-        updateBottomSheet(selectedPlace, emptyLocationRating);
     }
 
-    private void updateBottomSheet(Place selectedPlace, Map<String, Long> locationRatings){
-        TextView likesTextView = findViewById(R.id.likesTextView);
-        TextView dislikesTextView = findViewById(R.id.dislikesTextView);
-        likesTextView.setText(getString(R.string.likes) + ": " + locationRatings.get("likes"));
-        dislikesTextView.setText(getString(R.string.dislikes) + ": " + locationRatings.get("dislikes"));
+    private void updateBottomSheet(final Place selectedPlace) {
+        final TextView likesTextView = findViewById(R.id.likesTextView);
+        final TextView dislikesTextView = findViewById(R.id.dislikesTextView);
+
+        if (selectedPlace != null) {
+            final String selectedPlaceId = selectedPlace.getId();
+            Log.i(TAG, "Selected place ID: " + selectedPlaceId);
+
+            db.collection("locations").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Log.d(TAG, document.getId() + " => " + document.getData());
+
+                            if (document.contains(selectedPlaceId)) {
+                                Map<String, Map> selectedPlaceRatings =
+                                        (Map<String, Map>) document.get(selectedPlaceId);
+                                Map<String, ?> selectedPlaceAgeRangeRatings =
+                                        (Map<String, ?>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                                likesTextView.setText(getString(R.string.likes) + ": " + selectedPlaceAgeRangeRatings.get("likes"));
+                                dislikesTextView.setText(getString(R.string.dislikes) + ": " + selectedPlaceAgeRangeRatings.get("dislikes"));
+                                return;
+                            }
+                        }
+                        likesTextView.setText(String.format("%s: 0", getString(R.string.likes)));
+                        dislikesTextView.setText(String.format("%s: 0", getString(R.string.dislikes)));
+                        addLocationToFirebase(selectedPlace);
+                    } else {
+                        Log.w(TAG, "Error getting documents.", task.getException());
+                    }
+                }
+            });
+        }
     }
 
     private void resetMap(final GoogleMap googleMap) {
