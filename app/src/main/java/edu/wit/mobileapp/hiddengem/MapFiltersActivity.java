@@ -72,7 +72,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     //hidden-gems-4e29c.appspot.com
     private final String SERVER_URL = "https://hidden-gems-4e29c.appspot.com/_ah/api/hiddengemPlaces/v1/places";
     private final int INITIAL_PRICE_VALUE = 50;
-    private final int INITIAL_DISTANCE_VALUE = 100;
+    private final int INITIAL_DISTANCE_VALUE = 50;
     private final int INITIAL_RATINGS_VALUE = 0;
 
     private BottomSheetBehavior<View> bottomSheetBehavior;
@@ -264,6 +264,8 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         final int distanceFilter = distanceSeekBar.getProgress() * 50;
         final int ratingsFilter = ratingsSeekBar.getProgress() / 20;
 
+        googleMap.clear();
+
         getPlaces(locationToUpdateAround, priceFilter, distanceFilter, ratingsFilter);
     }
 
@@ -296,6 +298,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
+                        resetMap(googleMap);
                     }
                 }
             }, new Response.ErrorListener() {
