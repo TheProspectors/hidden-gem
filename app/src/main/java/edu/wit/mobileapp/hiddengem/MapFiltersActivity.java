@@ -438,74 +438,267 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         likeImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                db.runTransaction(new Transaction.Function<Void>() {
-                    @Override
-                    public Void apply(Transaction transaction) throws FirebaseFirestoreException {
-                        DocumentSnapshot snapshot = transaction.get(ratingDocumentReference);
+                if (selectedPlace != null) {
+                    final String selectedPlaceId = selectedPlace.getId();
+                    Log.i(TAG, "Selected place ID: " + selectedPlaceId);
 
-                        Map<String, Map> selectedPlaceRatings =
-                                (Map<String, Map>) snapshot.get(selectedPlace.getId());
-                        Map<String, Long> selectedPlaceAgeRangeRatings =
-                                (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+                    db.collection("locations").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    Log.d(TAG, document.getId() + " => " + document.getData());
 
-                        Long likes = selectedPlaceAgeRangeRatings.get("likes");
-                        likes++;
+                                    if (document.contains(selectedPlaceId)) {
+                                        Map<String, Map> selectedPlaceRatings =
+                                                (Map<String, Map>) document.get(selectedPlaceId);
+                                        Map<String, Long> selectedPlaceAgeRangeRatings =
+                                                (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
 
-                        selectedPlaceAgeRangeRatings.put("likes", likes);
-                        selectedPlaceRatings.put(userAgeRange.toString(), selectedPlaceAgeRangeRatings);
-                        transaction.update(ratingDocumentReference, selectedPlace.getId(), selectedPlaceRatings);
-
-                        return null;
-                    }
-                }).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "Transaction success!");
-                        updateBottomSheet(selectedPlace);
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Transaction failure.", e);
-                    }
-                });
+                                        if (selectedPlaceAgeRangeRatings.containsKey(firebaseUser.getUid())){
+                                            if (selectedPlaceAgeRangeRatings.get(firebaseUser.getUid()) == 0){
+                                                incrementLikes(reviewDocumentId, selectedPlace);
+                                                setUserVote(reviewDocumentId, selectedPlace, 1);
+                                            } else if (selectedPlaceAgeRangeRatings.get(firebaseUser.getUid()) < 0){
+                                                decrementDislikes(reviewDocumentId, selectedPlace);
+                                                incrementLikes(reviewDocumentId, selectedPlace);
+                                                setUserVote(reviewDocumentId, selectedPlace, 1);
+                                            }
+                                        } else {
+                                            incrementLikes(reviewDocumentId, selectedPlace);
+                                            setUserVote(reviewDocumentId, selectedPlace, 1);
+                                        }
+                                        return;
+                                    }
+                                }
+                            } else {
+                                Log.w(TAG, "Error getting documents.", task.getException());
+                            }
+                        }
+                    });
+                }
             }
         });
 
         dislikeImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                db.runTransaction(new Transaction.Function<Void>() {
-                    @Override
-                    public Void apply(Transaction transaction) throws FirebaseFirestoreException {
-                        DocumentSnapshot snapshot = transaction.get(ratingDocumentReference);
+                if (selectedPlace != null) {
+                    final String selectedPlaceId = selectedPlace.getId();
+                    Log.i(TAG, "Selected place ID: " + selectedPlaceId);
 
-                        Map<String, Map> selectedPlaceRatings =
-                                (Map<String, Map>) snapshot.get(selectedPlace.getId());
-                        Map<String, Long> selectedPlaceAgeRangeRatings =
-                                (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+                    db.collection("locations").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    Log.d(TAG, document.getId() + " => " + document.getData());
 
-                        Long dislikes = selectedPlaceAgeRangeRatings.get("dislikes");
-                        dislikes++;
+                                    if (document.contains(selectedPlaceId)) {
+                                        Map<String, Map> selectedPlaceRatings =
+                                                (Map<String, Map>) document.get(selectedPlaceId);
+                                        Map<String, Long> selectedPlaceAgeRangeRatings =
+                                                (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
 
-                        selectedPlaceAgeRangeRatings.put("dislikes", dislikes);
-                        selectedPlaceRatings.put(userAgeRange.toString(), selectedPlaceAgeRangeRatings);
-                        transaction.update(ratingDocumentReference, selectedPlace.getId(), selectedPlaceRatings);
+                                        if (selectedPlaceAgeRangeRatings.containsKey(firebaseUser.getUid())){
+                                            if (selectedPlaceAgeRangeRatings.get(firebaseUser.getUid()) == 0){
+                                                incrementDislikes(reviewDocumentId, selectedPlace);
+                                                setUserVote(reviewDocumentId, selectedPlace, -1);
+                                            } else if (selectedPlaceAgeRangeRatings.get(firebaseUser.getUid()) > 0){
+                                                decrementLikes(reviewDocumentId, selectedPlace);
+                                                incrementDislikes(reviewDocumentId, selectedPlace);
+                                                setUserVote(reviewDocumentId, selectedPlace, -1);
+                                            }
+                                        } else {
+                                            incrementDislikes(reviewDocumentId, selectedPlace);
+                                            setUserVote(reviewDocumentId, selectedPlace, -1);
+                                        }
+                                        return;
+                                    }
+                                }
+                            } else {
+                                Log.w(TAG, "Error getting documents.", task.getException());
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    }
 
-                        return null;
-                    }
-                }).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "Transaction success!");
-                        updateBottomSheet(selectedPlace);
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Transaction failure.", e);
-                    }
-                });
+    private void incrementLikes(final String reviewDocumentId, final Place selectedPlace){
+        final DocumentReference ratingDocumentReference = db.collection("locations").document(reviewDocumentId);
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Override
+            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(ratingDocumentReference);
+
+                Map<String, Map> selectedPlaceRatings =
+                        (Map<String, Map>) snapshot.get(selectedPlace.getId());
+                Map<String, Long> selectedPlaceAgeRangeRatings =
+                        (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                Long likes = selectedPlaceAgeRangeRatings.get("likes");
+                likes++;
+
+                selectedPlaceAgeRangeRatings.put("likes", likes);
+                selectedPlaceRatings.put(userAgeRange.toString(), selectedPlaceAgeRangeRatings);
+                transaction.update(ratingDocumentReference, selectedPlace.getId(), selectedPlaceRatings);
+
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "Transaction success!");
+                updateBottomSheet(selectedPlace);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Transaction failure.", e);
+            }
+        });
+    }
+
+    private void incrementDislikes(final String reviewDocumentId, final Place selectedPlace){
+        final DocumentReference ratingDocumentReference = db.collection("locations").document(reviewDocumentId);
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Override
+            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(ratingDocumentReference);
+
+                Map<String, Map> selectedPlaceRatings =
+                        (Map<String, Map>) snapshot.get(selectedPlace.getId());
+                Map<String, Long> selectedPlaceAgeRangeRatings =
+                        (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                Long dislikes = selectedPlaceAgeRangeRatings.get("dislikes");
+                dislikes++;
+
+                selectedPlaceAgeRangeRatings.put("dislikes", dislikes);
+                selectedPlaceRatings.put(userAgeRange.toString(), selectedPlaceAgeRangeRatings);
+                transaction.update(ratingDocumentReference, selectedPlace.getId(), selectedPlaceRatings);
+
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "Transaction success!");
+                updateBottomSheet(selectedPlace);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Transaction failure.", e);
+            }
+        });
+    }
+
+    private void decrementLikes(final String reviewDocumentId, final Place selectedPlace){
+        final DocumentReference ratingDocumentReference = db.collection("locations").document(reviewDocumentId);
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Override
+            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(ratingDocumentReference);
+
+                Map<String, Map> selectedPlaceRatings =
+                        (Map<String, Map>) snapshot.get(selectedPlace.getId());
+                Map<String, Long> selectedPlaceAgeRangeRatings =
+                        (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                Long likes = selectedPlaceAgeRangeRatings.get("likes");
+                likes--;
+
+                selectedPlaceAgeRangeRatings.put("likes", likes);
+                selectedPlaceRatings.put(userAgeRange.toString(), selectedPlaceAgeRangeRatings);
+                transaction.update(ratingDocumentReference, selectedPlace.getId(), selectedPlaceRatings);
+
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "Transaction success!");
+                updateBottomSheet(selectedPlace);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Transaction failure.", e);
+            }
+        });
+    }
+
+    private void decrementDislikes(final String reviewDocumentId, final Place selectedPlace){
+        final DocumentReference ratingDocumentReference = db.collection("locations").document(reviewDocumentId);
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Override
+            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(ratingDocumentReference);
+
+                Map<String, Map> selectedPlaceRatings =
+                        (Map<String, Map>) snapshot.get(selectedPlace.getId());
+                Map<String, Long> selectedPlaceAgeRangeRatings =
+                        (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                Long dislikes = selectedPlaceAgeRangeRatings.get("dislikes");
+                dislikes--;
+
+                selectedPlaceAgeRangeRatings.put("dislikes", dislikes);
+                selectedPlaceRatings.put(userAgeRange.toString(), selectedPlaceAgeRangeRatings);
+                transaction.update(ratingDocumentReference, selectedPlace.getId(), selectedPlaceRatings);
+
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "Transaction success!");
+                updateBottomSheet(selectedPlace);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Transaction failure.", e);
+            }
+        });
+    }
+
+    private void setUserVote(final String reviewDocumentId, final Place selectedPlace, final int userVote){
+        final DocumentReference ratingDocumentReference = db.collection("locations").document(reviewDocumentId);
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Override
+            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(ratingDocumentReference);
+
+                Map<String, Map> selectedPlaceRatings =
+                        (Map<String, Map>) snapshot.get(selectedPlace.getId());
+                Map<String, Long> selectedPlaceAgeRangeRatings =
+                        (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                selectedPlaceAgeRangeRatings.put(firebaseUser.getUid(), (long) userVote);
+                selectedPlaceRatings.put(userAgeRange.toString(), selectedPlaceAgeRangeRatings);
+                transaction.update(ratingDocumentReference, selectedPlace.getId(), selectedPlaceRatings);
+
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "Transaction success!");
+                updateBottomSheet(selectedPlace);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Transaction failure.", e);
             }
         });
     }
