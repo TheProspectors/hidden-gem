@@ -8,6 +8,77 @@
     android:fitsSystemWindows="true"
     tools:openDrawer="start">
 
+    <android.support.design.widget.CoordinatorLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="edu.wit.mobileapp.hiddengem.MapFiltersActivity">
+
+        <android.support.v4.widget.NestedScrollView
+            android:id="@+id/reviewSheet"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:background="#ffffff"
+            android:clipToPadding="true"
+            app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/likesTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:padding="16sp"
+                    android:text="@string/likes"
+                    android:textSize="16sp" />
+
+                <ImageButton
+                    android:id="@+id/Like"
+                    android:layout_width="40dp"
+                    android:layout_height="38dp"
+                    android:layout_gravity="center_vertical|center_horizontal|center"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/thumbup"
+                    android:contentDescription="@string/like_button"
+                    android:text="@string/like_button" />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <ImageButton
+                    android:id="@+id/Dislike"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:layout_gravity="center_vertical|center_horizontal|center"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/thumbdown"
+                    android:contentDescription="@string/dislike_button"
+                    android:text="@string/dislike_button" />
+
+                <TextView
+                    android:id="@+id/dislikesTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:padding="16sp"
+                    android:text="@string/dislikes"
+                    android:textSize="16sp" />
+            </LinearLayout>
+        </android.support.v4.widget.NestedScrollView>
+    </android.support.design.widget.CoordinatorLayout>
+
     <FrameLayout
         android:id="@+id/content_frame"
         android:layout_width="match_parent"
@@ -239,76 +310,5 @@
         </LinearLayout>
 
     </android.support.design.widget.NavigationView>
-
-    <android.support.design.widget.CoordinatorLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context="edu.wit.mobileapp.hiddengem.MapFiltersActivity">
-
-        <android.support.v4.widget.NestedScrollView
-            android:id="@+id/reviewSheet"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:background="#ffffff"
-            android:clipToPadding="true"
-            app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/likesTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:padding="16sp"
-                    android:text="@string/likes"
-                    android:textSize="16sp" />
-
-                <ImageButton
-                    android:id="@+id/Like"
-                    android:layout_width="40dp"
-                    android:layout_height="38dp"
-                    android:layout_gravity="center_vertical|center_horizontal|center"
-                    android:layout_marginBottom="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/thumbup"
-                    android:contentDescription="@string/like_button"
-                    android:text="@string/like_button" />
-
-                <Space
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-
-                <ImageButton
-                    android:id="@+id/Dislike"
-                    android:layout_width="wrap_content"
-                    android:layout_height="38dp"
-                    android:layout_gravity="center_vertical|center_horizontal|center"
-                    android:layout_marginBottom="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/thumbdown"
-                    android:contentDescription="@string/dislike_button"
-                    android:text="@string/dislike_button" />
-
-                <TextView
-                    android:id="@+id/dislikesTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:padding="16sp"
-                    android:text="@string/dislikes"
-                    android:textSize="16sp" />
-            </LinearLayout>
-        </android.support.v4.widget.NestedScrollView>
-    </android.support.design.widget.CoordinatorLayout>
 </android.support.v4.widget.DrawerLayout>
 
