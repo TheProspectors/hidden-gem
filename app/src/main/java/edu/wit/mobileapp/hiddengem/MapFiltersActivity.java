@@ -78,6 +78,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     private FirebaseFirestore db;
     private RequestQueue requestQueue;
     private LatLng userLocation;
+    private Integer userAgeRange;
     private String activityType;
     private GoogleMap googleMap;
 
@@ -107,6 +108,9 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         final double longitude = previousBundle.getDouble("place_longitude");
         final LatLng userPlaceLatLng = new LatLng(latitude, longitude);
         userLocation = userPlaceLatLng;
+
+        // Get user age range from bundle
+        userAgeRange = previousBundle.getInt("ageRange");
 
         // Load map
         final SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -357,7 +361,8 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
                                 for (QueryDocumentSnapshot document : task.getResult()) {
                                     Log.d(TAG, document.getId() + " => " + document.getData());
                                     if (document.contains(selectedPlaceId)){
-                                        updateBottomSheet(selectedPlace, (Map<String, Long>) document.get(selectedPlaceId));
+                                        updateBottomSheet(selectedPlace,
+                                                ((Map<String, Map>) document.get(selectedPlaceId)).get(userAgeRange.toString()));
                                         return;
                                     }
                                 }
@@ -384,11 +389,20 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     }
 
     private void addLocationToFirebase(Place selectedPlace){
-        Map<String, Long> locationRatings = new HashMap<>();
-        locationRatings.put("likes", (long) 0);
-        locationRatings.put("dislikes", (long) 0);
+        Map<String, Long> emptyLocationRating = new HashMap<>();
+        Map<String, Map> ageRanges = new HashMap<>();
         Map<String, Map> databaseEntry = new HashMap<>();
-        databaseEntry.put(selectedPlace.getId(), locationRatings);
+        String[] ageRangeChoices = getResources().getStringArray(R.array.age_range_choices);
+
+        emptyLocationRating.put("likes", (long) 0);
+        emptyLocationRating.put("dislikes", (long) 0);
+
+        for (Integer i = 0; i < ageRangeChoices.length; i++){
+            ageRanges.put(i.toString(), emptyLocationRating);
+        }
+
+        databaseEntry.put(selectedPlace.getId(), ageRanges);
+
         db.collection("locations")
                 .add(databaseEntry)
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
@@ -403,7 +417,7 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
                         Log.w(TAG, "Error adding document", e);
                     }
                 });
-        updateBottomSheet(selectedPlace, locationRatings);
+        updateBottomSheet(selectedPlace, emptyLocationRating);
     }
 
     private void updateBottomSheet(Place selectedPlace, Map<String, Long> locationRatings){
