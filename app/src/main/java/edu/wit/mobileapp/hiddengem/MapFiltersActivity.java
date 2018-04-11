@@ -113,6 +113,8 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
 
         View bottomSheet = findViewById(R.id.reviewSheet);
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheetBehavior.setHideable(true);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
         priceSeekBar.setProgress(INITIAL_PRICE_VALUE);
         distanceSeekBar.setProgress(INITIAL_DISTANCE_VALUE);
@@ -226,6 +228,8 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         } else {
             super.onBackPressed();
         }
@@ -333,10 +337,18 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
                 if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
                     bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 }
-                else{
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                Log.i(TAG, "User selected: " + marker.getTitle());
+
+                return false;
+            }
+        });
+
+        this.googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 }
-                return true;
             }
         });
     }
