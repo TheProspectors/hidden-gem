@@ -25,6 +25,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".review"></activity>
         <activity android:name=".ActivitySelectionActivity"></activity>
         <activity android:name=".LocationSelectionActivity"></activity>
         <activity android:name=".MapFiltersActivity"></activity>

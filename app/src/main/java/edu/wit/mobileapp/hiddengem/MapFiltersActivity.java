@@ -3,49 +3,118 @@ package edu.wit.mobileapp.hiddengem;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.Cache;
+import com.android.volley.Network;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.BasicNetwork;
+import com.android.volley.toolbox.DiskBasedCache;
+import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBufferResponse;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.Transaction;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by ollilaj on 3/25/2018.
  */
 
 public class MapFiltersActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
-    private LatLng userPlaceLatLng;
-    private String userPlaceAddress;
-    private String userPlaceName;
+    private final String TAG = "MapFiltersActivity";
+    //hidden-gems-4e29c.appspot.com
+    private final String SERVER_URL = "https://hidden-gems-4e29c.appspot.com/_ah/api/hiddengemPlaces/v1/places";
+    private final int INITIAL_PRICE_VALUE = 50;
+    private final int INITIAL_DISTANCE_VALUE = 50;
+    private final int INITIAL_RATINGS_VALUE = 0;
 
-    private int priceValue = 0;
-    private int distanceValue = 0;
-    private int ratingsValue = 0;
+    private BottomSheetBehavior<View> bottomSheetBehavior;
+
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser firebaseUser;
+    private FirebaseFirestore db;
+    private RequestQueue requestQueue;
+    private LatLng userLocation;
+    private Integer userAgeRange;
+    private String activityType;
+    private GoogleMap googleMap;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_filters);
 
+        // Firebase
+        firebaseAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        // Setup request queue
+        // Instantiate the cache
+        final Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
+        // Set up the network to use HttpURLConnection as the HTTP client.
+        final Network network = new BasicNetwork(new HurlStack());
+        // Instantiate the RequestQueue with the cache and network.
+        requestQueue = new RequestQueue(cache, network);
+        // Start the queue
+        requestQueue.start();
+
         // Get location data from bundle
         final Bundle previousBundle = getIntent().getExtras();
+        activityType = Objects.requireNonNull(previousBundle).getString("activity");
         final double latitude = previousBundle.getDouble("place_latitude");
         final double longitude = previousBundle.getDouble("place_longitude");
-        userPlaceLatLng = new LatLng(latitude, longitude);
-        userPlaceAddress = previousBundle.getString("place_address");
-        userPlaceName = previousBundle.getString("place_name");
+        final LatLng userPlaceLatLng = new LatLng(latitude, longitude);
+        userLocation = userPlaceLatLng;
+
+        // Get user age range from bundle
+        userAgeRange = previousBundle.getInt("ageRange");
 
         // Load map
         final SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -57,14 +126,14 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         final SeekBar distanceSeekBar = (SeekBar) findViewById(R.id.distance_seekbar);
         final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
 
-        // Set default filter values in percentages
-        setPriceValue(100);
-        setDistanceValue(500);
-        setRatingsValue(200);
+        View bottomSheet = findViewById(R.id.reviewSheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+        bottomSheetBehavior.setHideable(true);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
-        priceSeekBar.setProgress(priceValue);
-        distanceSeekBar.setProgress(distanceValue);
-        ratingsSeekBar.setProgress(ratingsValue);
+        priceSeekBar.setProgress(INITIAL_PRICE_VALUE);
+        distanceSeekBar.setProgress(INITIAL_DISTANCE_VALUE);
+        ratingsSeekBar.setProgress(INITIAL_RATINGS_VALUE);
 
         navigationView.setNavigationItemSelectedListener(this);
         priceSeekBar.setOnSeekBarChangeListener(seekBarListener);
@@ -82,45 +151,35 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             @Override
             public void onDrawerClosed(View drawerView) {
-                setPriceValue(priceSeekBar.getProgress());
-                setDistanceValue(distanceSeekBar.getProgress());
-                setRatingsValue(ratingsSeekBar.getProgress());
+                super.onDrawerClosed(drawerView);
+
+                updateMapMarkers(userPlaceLatLng);
             }
         };
         drawer.addDrawerListener(toggle);
         toggle.syncState();
     }
 
-    private void setPriceValue(final int priceValue) {
-        int newPrice = priceValue;
-        if (priceValue != 0) {
-            newPrice = (priceValue / 25) + 1;
-        }
-        this.priceValue = newPrice;
-    }
-
-    private void setDistanceValue(final int distanceValue) {
-        int newDistance = distanceValue;
-        if (distanceValue != 0) {
-            newDistance = (distanceValue / 5) + 1;
-        }
-        this.distanceValue = newDistance;
-    }
-
-    private void setRatingsValue(final int ratingsValue) {
-        int newRatingsValue = ratingsValue;
-        if (ratingsValue != 0) {
-            newRatingsValue = (ratingsValue / 25) + 1;
-        }
-        this.ratingsValue = newRatingsValue;
-    }
-
-    // Moves the map to selected location once ready
     @Override
-    public void onMapReady(final GoogleMap googleMap) {
-        googleMap.addMarker(new MarkerOptions().position(userPlaceLatLng).title(userPlaceName));
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(userPlaceLatLng));
-        googleMap.moveCamera(CameraUpdateFactory.zoomTo(googleMap.getMaxZoomLevel() * 0.6f));
+    protected void onStart() {
+        super.onStart();
+
+        firebaseAuth.signInAnonymously()
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(TAG, "signInAnonymously:success");
+                            firebaseUser = firebaseAuth.getCurrentUser();
+                            Log.i(TAG, "Firebase User ID: " + firebaseUser.getUid());
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(TAG, "signInAnonymously:failure", task.getException());
+                            Toast.makeText(MapFiltersActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 
     // Sets the increments for each seekBar
@@ -184,6 +243,8 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
         final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         } else {
             super.onBackPressed();
         }
@@ -192,5 +253,503 @@ public class MapFiltersActivity extends AppCompatActivity implements NavigationV
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         return false;
+    }
+
+    private void updateMapMarkers(LatLng locationToUpdateAround) {
+        final SeekBar priceSeekBar = (SeekBar) findViewById(R.id.price_seekbar);
+        final SeekBar distanceSeekBar = (SeekBar) findViewById(R.id.distance_seekbar);
+        final SeekBar ratingsSeekBar = (SeekBar) findViewById(R.id.ratings_seekbar);
+
+        final int priceFilter = priceSeekBar.getProgress() / 20;
+        final int distanceFilter = distanceSeekBar.getProgress() * 50;
+        final int ratingsFilter = ratingsSeekBar.getProgress() / 20;
+
+        googleMap.clear();
+
+        getPlaces(locationToUpdateAround, priceFilter, distanceFilter, ratingsFilter);
+    }
+
+    private void getPlaces(final LatLng latLng, final int priceFilter, final int distanceFilter, final int ratingsFilter) {
+        if (firebaseUser == null) {
+            Log.e(TAG, "Firebase user is set to null. Cannot make request to server");
+            return;
+        }
+
+        try {
+            final JSONObject requestJsonObject = new JSONObject();
+            requestJsonObject.put("userUid", firebaseUser.getUid());
+            requestJsonObject.put("latitude", latLng.latitude);
+            requestJsonObject.put("longitude", latLng.longitude);
+            requestJsonObject.put("priceFilter", priceFilter);
+            requestJsonObject.put("distanceFilter", distanceFilter);
+            requestJsonObject.put("ratingsFilter", ratingsFilter);
+            requestJsonObject.put("activityCategory", activityType);
+
+            final JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(SERVER_URL, requestJsonObject, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject responseJsonObject) {
+                    Log.d(TAG, responseJsonObject.toString());
+                    Log.d(TAG, "Success!");
+                    try {
+                        final JSONArray placeList = responseJsonObject.getJSONArray("placeList");
+                        for (int i = 0; i < placeList.length(); i++) {
+                            final String placeId = placeList.getJSONObject(i).getString("placeId");
+                            addMarkerToMap(placeId);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        resetMap(googleMap);
+                    }
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError volleyError) {
+                    Log.d(TAG, "Error :(");
+                    Log.d(TAG, String.valueOf(volleyError.getMessage()));
+                    Log.d(TAG, requestJsonObject.toString());
+                    volleyError.printStackTrace();
+                }
+            });
+
+            requestQueue.add(jsonObjectRequest);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addMarkerToMap(final String placeId) {
+        if (googleMap != null) {
+            final GeoDataClient geoDataClient = Places.getGeoDataClient(this);
+            geoDataClient.getPlaceById(placeId).addOnSuccessListener(new OnSuccessListener<PlaceBufferResponse>() {
+                @SuppressLint("RestrictedApi")
+                @Override
+                public void onSuccess(PlaceBufferResponse places) {
+                    resetMap(googleMap);
+                    for (final Place place : places) {
+                        Marker marker = googleMap.addMarker(new MarkerOptions()
+                                .position(place.getLatLng())
+                                .title(place.getName().toString()));
+                        marker.setTag(place);
+                        Log.i(TAG, "Place found: " + place.getName());
+                        Log.i(TAG, "Place id: " + place.getId());
+                    }
+                    places.release();
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onMapReady(final GoogleMap googleMap) {
+        resetMap(googleMap);
+        this.googleMap = googleMap;
+        this.googleMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+            @Override
+            public void onMapLoaded() {
+                updateMapMarkers(userLocation);
+            }
+        });
+
+        this.googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                if (marker.getTag() != null){
+                    if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                    }
+                    Log.i(TAG, "User selected: " + marker.getTitle());
+                    final Place selectedPlace = (Place) marker.getTag();
+                    if (selectedPlace != null) {
+                        final String selectedPlaceId = selectedPlace.getId();
+                        Log.i(TAG, "Selected place ID: " + selectedPlaceId);
+                        db.collection("locations").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    for (QueryDocumentSnapshot document : task.getResult()) {
+                                        Log.d(TAG, document.getId() + " => " + document.getData());
+                                        if (document.contains(selectedPlaceId)) {
+                                            updateBottomSheet(selectedPlace);
+                                            return;
+                                        }
+                                    }
+                                    addLocationToFirebase(selectedPlace);
+                                } else {
+                                    Log.w(TAG, "Error getting documents.", task.getException());
+                                }
+                            }
+                        });
+
+                    }
+                } else if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN){
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                }
+                return false;
+            }
+        });
+
+        this.googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                }
+            }
+        });
+    }
+
+    private void addLocationToFirebase(final Place selectedPlace) {
+        Map<String, Long> emptyLocationRating = new HashMap<>();
+        Map<String, Map<String, Long>> ageRanges = new HashMap<>();
+        Map<String, Map<String, Map<String, Long>>> databaseEntry = new HashMap<>();
+        String[] ageRangeChoices = getResources().getStringArray(R.array.age_range_choices);
+
+        emptyLocationRating.put("likes", (long) 0);
+        emptyLocationRating.put("dislikes", (long) 0);
+
+        for (Integer i = 0; i < ageRangeChoices.length; i++) {
+            ageRanges.put(i.toString(), emptyLocationRating);
+        }
+
+        databaseEntry.put(selectedPlace.getId(), ageRanges);
+
+        db.collection("locations")
+                .add(databaseEntry)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
+                        updateBottomSheet(selectedPlace);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error adding document", e);
+                    }
+                });
+    }
+
+    private void setRatingButtonClickListeners(final String reviewDocumentId, final Place selectedPlace) {
+        final ImageButton likeImageButton = findViewById(R.id.Like);
+        final ImageButton dislikeImageButton = findViewById(R.id.Dislike);
+        final DocumentReference ratingDocumentReference = db.collection("locations").document(reviewDocumentId);
+
+        likeImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (selectedPlace != null) {
+                    final String selectedPlaceId = selectedPlace.getId();
+                    Log.i(TAG, "Selected place ID: " + selectedPlaceId);
+
+                    db.collection("locations").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    Log.d(TAG, document.getId() + " => " + document.getData());
+
+                                    if (document.contains(selectedPlaceId)) {
+                                        Map<String, Map> selectedPlaceRatings =
+                                                (Map<String, Map>) document.get(selectedPlaceId);
+                                        Map<String, Long> selectedPlaceAgeRangeRatings =
+                                                (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                                        if (selectedPlaceAgeRangeRatings.containsKey(firebaseUser.getUid())){
+                                            if (selectedPlaceAgeRangeRatings.get(firebaseUser.getUid()) == 0){
+                                                incrementLikes(reviewDocumentId, selectedPlace);
+                                                setUserVote(reviewDocumentId, selectedPlace, 1);
+                                            } else if (selectedPlaceAgeRangeRatings.get(firebaseUser.getUid()) < 0){
+                                                decrementDislikes(reviewDocumentId, selectedPlace);
+                                                incrementLikes(reviewDocumentId, selectedPlace);
+                                                setUserVote(reviewDocumentId, selectedPlace, 1);
+                                            }
+                                        } else {
+                                            incrementLikes(reviewDocumentId, selectedPlace);
+                                            setUserVote(reviewDocumentId, selectedPlace, 1);
+                                        }
+                                        return;
+                                    }
+                                }
+                            } else {
+                                Log.w(TAG, "Error getting documents.", task.getException());
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        dislikeImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (selectedPlace != null) {
+                    final String selectedPlaceId = selectedPlace.getId();
+                    Log.i(TAG, "Selected place ID: " + selectedPlaceId);
+
+                    db.collection("locations").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    Log.d(TAG, document.getId() + " => " + document.getData());
+
+                                    if (document.contains(selectedPlaceId)) {
+                                        Map<String, Map> selectedPlaceRatings =
+                                                (Map<String, Map>) document.get(selectedPlaceId);
+                                        Map<String, Long> selectedPlaceAgeRangeRatings =
+                                                (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                                        if (selectedPlaceAgeRangeRatings.containsKey(firebaseUser.getUid())){
+                                            if (selectedPlaceAgeRangeRatings.get(firebaseUser.getUid()) == 0){
+                                                incrementDislikes(reviewDocumentId, selectedPlace);
+                                                setUserVote(reviewDocumentId, selectedPlace, -1);
+                                            } else if (selectedPlaceAgeRangeRatings.get(firebaseUser.getUid()) > 0){
+                                                decrementLikes(reviewDocumentId, selectedPlace);
+                                                incrementDislikes(reviewDocumentId, selectedPlace);
+                                                setUserVote(reviewDocumentId, selectedPlace, -1);
+                                            }
+                                        } else {
+                                            incrementDislikes(reviewDocumentId, selectedPlace);
+                                            setUserVote(reviewDocumentId, selectedPlace, -1);
+                                        }
+                                        return;
+                                    }
+                                }
+                            } else {
+                                Log.w(TAG, "Error getting documents.", task.getException());
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    private void incrementLikes(final String reviewDocumentId, final Place selectedPlace){
+        final DocumentReference ratingDocumentReference = db.collection("locations").document(reviewDocumentId);
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Override
+            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(ratingDocumentReference);
+
+                Map<String, Map> selectedPlaceRatings =
+                        (Map<String, Map>) snapshot.get(selectedPlace.getId());
+                Map<String, Long> selectedPlaceAgeRangeRatings =
+                        (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                Long likes = selectedPlaceAgeRangeRatings.get("likes");
+                likes++;
+
+                selectedPlaceAgeRangeRatings.put("likes", likes);
+                selectedPlaceRatings.put(userAgeRange.toString(), selectedPlaceAgeRangeRatings);
+                transaction.update(ratingDocumentReference, selectedPlace.getId(), selectedPlaceRatings);
+
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "Transaction success!");
+                updateBottomSheet(selectedPlace);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Transaction failure.", e);
+            }
+        });
+    }
+
+    private void incrementDislikes(final String reviewDocumentId, final Place selectedPlace){
+        final DocumentReference ratingDocumentReference = db.collection("locations").document(reviewDocumentId);
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Override
+            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(ratingDocumentReference);
+
+                Map<String, Map> selectedPlaceRatings =
+                        (Map<String, Map>) snapshot.get(selectedPlace.getId());
+                Map<String, Long> selectedPlaceAgeRangeRatings =
+                        (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                Long dislikes = selectedPlaceAgeRangeRatings.get("dislikes");
+                dislikes++;
+
+                selectedPlaceAgeRangeRatings.put("dislikes", dislikes);
+                selectedPlaceRatings.put(userAgeRange.toString(), selectedPlaceAgeRangeRatings);
+                transaction.update(ratingDocumentReference, selectedPlace.getId(), selectedPlaceRatings);
+
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "Transaction success!");
+                updateBottomSheet(selectedPlace);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Transaction failure.", e);
+            }
+        });
+    }
+
+    private void decrementLikes(final String reviewDocumentId, final Place selectedPlace){
+        final DocumentReference ratingDocumentReference = db.collection("locations").document(reviewDocumentId);
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Override
+            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(ratingDocumentReference);
+
+                Map<String, Map> selectedPlaceRatings =
+                        (Map<String, Map>) snapshot.get(selectedPlace.getId());
+                Map<String, Long> selectedPlaceAgeRangeRatings =
+                        (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                Long likes = selectedPlaceAgeRangeRatings.get("likes");
+                likes--;
+
+                selectedPlaceAgeRangeRatings.put("likes", likes);
+                selectedPlaceRatings.put(userAgeRange.toString(), selectedPlaceAgeRangeRatings);
+                transaction.update(ratingDocumentReference, selectedPlace.getId(), selectedPlaceRatings);
+
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "Transaction success!");
+                updateBottomSheet(selectedPlace);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Transaction failure.", e);
+            }
+        });
+    }
+
+    private void decrementDislikes(final String reviewDocumentId, final Place selectedPlace){
+        final DocumentReference ratingDocumentReference = db.collection("locations").document(reviewDocumentId);
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Override
+            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(ratingDocumentReference);
+
+                Map<String, Map> selectedPlaceRatings =
+                        (Map<String, Map>) snapshot.get(selectedPlace.getId());
+                Map<String, Long> selectedPlaceAgeRangeRatings =
+                        (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                Long dislikes = selectedPlaceAgeRangeRatings.get("dislikes");
+                dislikes--;
+
+                selectedPlaceAgeRangeRatings.put("dislikes", dislikes);
+                selectedPlaceRatings.put(userAgeRange.toString(), selectedPlaceAgeRangeRatings);
+                transaction.update(ratingDocumentReference, selectedPlace.getId(), selectedPlaceRatings);
+
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "Transaction success!");
+                updateBottomSheet(selectedPlace);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Transaction failure.", e);
+            }
+        });
+    }
+
+    private void setUserVote(final String reviewDocumentId, final Place selectedPlace, final int userVote){
+        final DocumentReference ratingDocumentReference = db.collection("locations").document(reviewDocumentId);
+
+        db.runTransaction(new Transaction.Function<Void>() {
+            @Override
+            public Void apply(Transaction transaction) throws FirebaseFirestoreException {
+                DocumentSnapshot snapshot = transaction.get(ratingDocumentReference);
+
+                Map<String, Map> selectedPlaceRatings =
+                        (Map<String, Map>) snapshot.get(selectedPlace.getId());
+                Map<String, Long> selectedPlaceAgeRangeRatings =
+                        (Map<String, Long>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                selectedPlaceAgeRangeRatings.put(firebaseUser.getUid(), (long) userVote);
+                selectedPlaceRatings.put(userAgeRange.toString(), selectedPlaceAgeRangeRatings);
+                transaction.update(ratingDocumentReference, selectedPlace.getId(), selectedPlaceRatings);
+
+                return null;
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "Transaction success!");
+                updateBottomSheet(selectedPlace);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Transaction failure.", e);
+            }
+        });
+    }
+
+    private void updateBottomSheet(final Place selectedPlace) {
+        final TextView likesTextView = findViewById(R.id.likesTextView);
+        final TextView dislikesTextView = findViewById(R.id.dislikesTextView);
+
+
+        if (selectedPlace != null) {
+            final String selectedPlaceId = selectedPlace.getId();
+            Log.i(TAG, "Selected place ID: " + selectedPlaceId);
+
+
+            db.collection("locations").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Log.d(TAG, document.getId() + " => " + document.getData());
+
+                            if (document.contains(selectedPlaceId)) {
+                                Map<String, Map> selectedPlaceRatings =
+                                        (Map<String, Map>) document.get(selectedPlaceId);
+                                Map<String, ?> selectedPlaceAgeRangeRatings =
+                                        (Map<String, ?>) selectedPlaceRatings.get(userAgeRange.toString());
+
+                                likesTextView.setText(getString(R.string.likes) + ": " + selectedPlaceAgeRangeRatings.get("likes"));
+                                dislikesTextView.setText(getString(R.string.dislikes) + ": " + selectedPlaceAgeRangeRatings.get("dislikes"));
+                                setRatingButtonClickListeners(document.getId(), selectedPlace);
+                                return;
+                            }
+                        }
+                        likesTextView.setText(String.format("%s: 0", getString(R.string.likes)));
+                        dislikesTextView.setText(String.format("%s: 0", getString(R.string.dislikes)));
+                        addLocationToFirebase(selectedPlace);
+                    } else {
+                        Log.w(TAG, "Error getting documents.", task.getException());
+                    }
+                }
+            });
+        }
+    }
+
+    private void resetMap(final GoogleMap googleMap) {
+        googleMap.moveCamera(CameraUpdateFactory.zoomTo(googleMap.getMaxZoomLevel() * 0.7f));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLng(userLocation));
+        googleMap.addMarker(new MarkerOptions()
+                .position(userLocation)
+                .title("Your Location")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_my_location)));
+        googleMap.setBuildingsEnabled(true);
     }
 }

@@ -26,9 +26,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 public class LocationSelectionActivity extends AppCompatActivity implements PlaceSelectionListener {
-    final int ACCESS_LOCATION_REQUEST_CODE = 100;
+    private final int ACCESS_LOCATION_REQUEST_CODE = 100;
 
-    Place selectedPlace = null;
+    private Place selectedPlace = null;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -76,6 +76,11 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
     // If permissions for location are granted, set the current place to the user's current location
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         Log.d("PLACE PERMISSION", "Permission request result");
@@ -117,7 +122,9 @@ public class LocationSelectionActivity extends AppCompatActivity implements Plac
                 } else {
                     Log.d("PLACE", "No likely place could be determined");
                 }
-                navigateToNextActivity(bestLikelihood.getPlace());
+                final Place likelyPlace = bestLikelihood.getPlace();
+                onPlaceSelected(likelyPlace);
+                navigateToNextActivity(likelyPlace );
             }
         });
     }
